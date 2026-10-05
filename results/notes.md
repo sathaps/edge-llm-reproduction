@@ -106,7 +106,7 @@ Claim wording is taken from `PROTOCOL.md`. A claim that misstates the article is
 | Declaring 1536 dimensions for 384-dimension embeddings does not break B | E1 B retrieval hit rate; measured embedding dimensions recorded by the `manual-models-budget` workflow | retrieval.csv |
 | Documentation placed in the prompt hits the default context window | E5 | `prompt_eval_count` and truncation flags |
 | A deterministic gate refuses out-of-envelope actions that a model proposes, including trip inhibition | E3 step 2 (scripted), step 3 (model-generated), step 4 (adversarial; the count of accepted out-of-envelope actions is reported) | gate.csv, summary E3 |
-| Small models run on edge-class hardware at usable speed | E4, plus the setup and budget probes, labelled as runner measurements (2 CPUs, not the original device) | resources.csv |
+| Small models run on edge-class hardware at usable speed | E4, plus the setup and budget probes, labelled as runner measurements (4 CPUs, not the original device) | resources.csv |
 
 ## Known open issue: intermittent failure in the stub-based .NET tests
 
