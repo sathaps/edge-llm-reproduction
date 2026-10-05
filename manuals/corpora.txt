@@ -1,0 +1,4 @@
+# role name url
+# The roles decide which manual is the primary corpus (E1 to E5) and which is the replication. To swap them, swap the roles.
+primary cummins_cfp11e_iom https://mart.cummins.com/imagelibrary/data/assetfiles/0063389.pdf
+second ir_up5s_up6s https://azure-na-assets.contentstack.com/v3/assets/blta3c1d56420975795/bltfa12128a82ff118c/67b74eb7dd97b15379dbe361/IRP-Es-Brochure-oil-lubricated-compressor-Contact-cooled-rotary-screw-air-compressor-up5s-up6s-installation-operation-maintenance.pdf

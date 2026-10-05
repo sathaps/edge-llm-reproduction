@@ -163,3 +163,19 @@ def test_embedding_retrieval_counts_and_prints_no_text(tmp_path, stub, url, monk
     assert "mentions" not in capsys.readouterr().out
     detail = open(tmp_path / "out" / "embedding_retrieval_queries.csv").read()
     assert "mentions" not in detail
+
+
+def test_structure_finds_procedures_that_cross_pages_and_tables(tmp_path):
+    import manual_structure as ms
+    d = tmp_path / "pages"
+    d.mkdir()
+    (d / "001.txt").write_text("Starting. Before you start, make sure the valve is open.\n1. Close the breaker.\n2. Set the selector.\n3. Press START.\n")
+    (d / "002.txt").write_text("4. Release the button.\n5. Check the oil pressure.\nTable 4-1 Limits\nOil pressure minimum 20 psi trip 15 psi\n")
+    (d / "003.txt").write_text("Overspeed trip 2100 rpm. This screen applies only to electronic engines.\n")
+    res = ms.main(str(d), str(tmp_path / "out"))
+    assert [(p["start_page"], p["end_page"], p["steps"], p["crosses_page"]) for p in res["procedures"]] == [(1, 2, 5, True)]
+    assert res["procedures"][0]["prerequisite_words"] >= 1
+    assert res["tables"][0]["label"].lower() == "table 4-1" and res["tables"][0]["value_cells"] >= 1
+    assert [l["page"] for l in res["limits"]] == [2, 3] and res["limits"][1]["trip_or_alarm_lines"] == 1
+    assert [a["page"] for a in res["applicability"]] == [3]
+    assert "label" not in res["applicability"][0]
