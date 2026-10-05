@@ -31,6 +31,7 @@ class Stub(ThreadingHTTPServer):
         self.emulate_context = False
         self.embed_window = {"all-minilm": 256, "mxbai-embed-large": 512}
         self.chat_window = {"llama3": 4096, "mistral": 4096, "tinyllama": 2048}
+        self.chat_max = {"llama3": 8192, "mistral": 32768, "tinyllama": 2048}  # num_ctx is limited to the trained length
         self.last_ctx = {}
 
 
@@ -118,7 +119,8 @@ class Handler(BaseHTTPRequestHandler):
             text = self.server.reply(self.path, body)
             prompt_tokens = self.server.prompt_tokens
             if self.server.emulate_context:
-                ctx = body.get("options", {}).get("num_ctx") or self.server.chat_window[body["model"].split(":")[0]]
+                name = body["model"].split(":")[0]
+                ctx = min(body.get("options", {}).get("num_ctx") or self.server.chat_window[name], self.server.chat_max[name])
                 self.server.last_ctx = {body["model"]: ctx}
                 offered = sum(len(m["content"].split()) for m in body["messages"]) + 3
                 prompt_tokens = min(offered, ctx)

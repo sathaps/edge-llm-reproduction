@@ -2,12 +2,15 @@
 """Count how many prompt tokens a model is offered and how many it uses under its default context window.
 
 usage: check_prompt_truncation.py <pages-dir> <out-dir> <model>
-The same prompt is sent twice with num_predict 1: first with the default window, then with num_ctx raised so that the
-whole prompt fits. The second count is the tokens offered, the first is the tokens used. The window in effect is read
-from /api/ps after each pass. Prompts are built the way the pipelines build them, from whole pages (B) or three
+Tokens used: the prompt_eval_count of the prompt sent with the default window, num_predict 1.
+Tokens offered: the prompt is cut into pieces of about 3000 characters at word boundaries. Each piece is sent alone with
+num_ctx raised, and the offered count is the sum of the piece counts minus the template overhead of every piece after the
+first. Ollama limits num_ctx to the context length the model was trained with, so a single raised pass cannot count a
+prompt longer than that. The single raised pass is kept as a cross-check for prompts that fit. The window in effect is
+read from /api/ps after each pass. Prompts are built the way the pipelines build them, from whole pages (B) or three
 1000-character chunks (A).
 """
-import csv, glob, json, os, re, sys, time, urllib.request
+import csv, functools, glob, json, os, re, sys, time, urllib.request
 
 PAGES = [1, 2, 3, 5, 8]
 RAISED = 32768
@@ -54,6 +57,37 @@ def count(model, messages, num_ctx=None):
     return r["prompt_eval_count"], window(model), time.time() - t0
 
 
+def split_pieces(text, size=3000):
+    pieces, cur, n = [], [], 0
+    for word in text.split(" "):
+        if cur and n + len(word) + 1 > size:
+            pieces.append(" ".join(cur))
+            cur, n = [], 0
+        cur.append(word)
+        n += len(word) + 1
+    if cur:
+        pieces.append(" ".join(cur))
+    return pieces
+
+
+def template_overhead(model):
+    """Tokens that the chat template adds around one user message."""
+    one = count(model, [{"role": "user", "content": "a"}], RAISED)[0]
+    two = count(model, [{"role": "user", "content": "a a"}], RAISED)[0]
+    return one - (two - one)
+
+
+@functools.lru_cache(maxsize=None)
+def piece_count(model, text):
+    return count(model, [{"role": "user", "content": text}], RAISED)[0]
+
+
+def offered_by_pieces(model, messages, overhead):
+    pieces = [p for m in messages for p in split_pieces(m["content"])]
+    counts = [piece_count(model, p) for p in pieces]
+    return sum(counts) - overhead * (len(pieces) - 1), len(pieces)
+
+
 def main(pages_dir, out_dir, model, cfg_path="config/pipelines.json"):
     os.makedirs(out_dir, exist_ok=True)
     cfg = json.load(open(cfg_path))
@@ -62,12 +96,15 @@ def main(pages_dir, out_dir, model, cfg_path="config/pipelines.json"):
     for shape, n, messages in work:
         used[(shape, n)] = count(model, messages)
     rows = []
+    overhead = template_overhead(model)
     for shape, n, messages in work:
-        offered, raised_window, raised_s = count(model, messages, RAISED)
+        single, raised_window, raised_s = count(model, messages, RAISED)
+        offered, pieces = offered_by_pieces(model, messages, overhead)
         u, default_window, default_s = used[(shape, n)]
         rows.append({"model": model, "shape": shape, "units": n, "prompt_chars": sum(len(m["content"]) for m in messages),
                      "window_default": default_window, "window_raised": raised_window,
-                     "tokens_offered": offered, "tokens_used": u, "tokens_dropped": offered - u,
+                     "tokens_offered": offered, "offered_pieces": pieces, "template_overhead": overhead,
+                     "tokens_single_raised_pass": single, "tokens_used": u, "tokens_dropped": max(0, offered - u),
                      "truncated": offered > default_window, "default_pass_s": round(default_s, 2), "raised_pass_s": round(raised_s, 2)})
         print(json.dumps(rows[-1]), flush=True)
     path = f"{out_dir}/prompt_truncation_{model.replace(':', '_')}.csv"
