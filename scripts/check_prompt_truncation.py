@@ -104,7 +104,7 @@ def main(pages_dir, out_dir, model, cfg_path="config/pipelines.json"):
         rows.append({"model": model, "shape": shape, "units": n, "prompt_chars": sum(len(m["content"]) for m in messages),
                      "window_default": default_window, "window_raised": raised_window,
                      "tokens_offered": offered, "offered_pieces": pieces, "template_overhead": overhead,
-                     "tokens_single_raised_pass": single, "tokens_used": u, "tokens_dropped": max(0, offered - u),
+                     "tokens_single_raised_pass": single, "tokens_used": u, "tokens_dropped": offered - u if offered > default_window else 0,
                      "truncated": offered > default_window, "default_pass_s": round(default_s, 2), "raised_pass_s": round(raised_s, 2)})
         print(json.dumps(rows[-1]), flush=True)
     path = f"{out_dir}/prompt_truncation_{model.replace(':', '_')}.csv"

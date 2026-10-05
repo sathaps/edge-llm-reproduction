@@ -1,0 +1,7 @@
+model,shape,units,prompt_chars,window_default,window_raised,tokens_offered,offered_pieces,template_overhead,tokens_single_raised_pass,tokens_used,tokens_dropped,truncated,default_pass_s,raised_pass_s
+tinyllama:latest,A,3,3288,2048,2048,862,3,34,854,854,8,false,7.03,0.04
+tinyllama:latest,B,1,3554,2048,2048,1102,2,34,1102,1102,0,false,8.7,0.51
+tinyllama:latest,B,2,6719,2048,2048,1954,3,34,1952,1952,2,false,8.37,9.41
+tinyllama:latest,B,3,10943,2048,2048,3090,4,34,1026,1026,2064,true,8.02,0.05
+tinyllama:latest,B,5,16527,2048,2048,4405,6,34,1026,1026,3379,true,8.01,0.06
+tinyllama:latest,B,8,27394,2048,2048,7288,10,34,1026,1026,6262,true,8.06,0.08
