@@ -179,3 +179,25 @@ def test_structure_finds_procedures_that_cross_pages_and_tables(tmp_path):
     assert [l["page"] for l in res["limits"]] == [2, 3] and res["limits"][1]["trip_or_alarm_lines"] == 1
     assert [a["page"] for a in res["applicability"]] == [3]
     assert "label" not in res["applicability"][0]
+
+
+def test_probe_asks_for_the_code_after_a_label_and_has_a_negative_control(tmp_path, stub, url, monkeypatch):
+    import re, check_prompt_survival as cs
+    stub.emulate_context = True
+    patch_urls(monkeypatch, url)
+
+    def reply(path, body):
+        text = body["messages"][-1]["content"]
+        label = re.search(r'follows the text "([^"]+)"', text).group(1)
+        words = text.split()
+        tail = " ".join(words if len(words) < 3000 else words[len(words) // 2:])  # a model that keeps the second half of a long prompt
+        m = re.search(re.escape(label) + r" (\w+)\.", tail)
+        return m.group(1) if m and label != "Reference code for page 99 start:" else "none"
+    stub.reply = reply
+    rows = cs.probe(str(tmp_path), "llama3:latest", str(ROOT / "config/pipelines.json"))
+    one = [r for r in rows if r["pages"] == 1]
+    assert len(one) == 4 + 1 and all(r["correct"] for r in one if r["in_prompt"])
+    assert [r["said_none"] for r in rows if not r["in_prompt"]] == [True, True, True]
+    eight = {r["part"]: r for r in rows if r["pages"] == 8}
+    assert not eight["instructions"]["correct"] and eight["page 8 end"]["correct"] and eight["question"]["correct"]
+    assert (tmp_path / "probe_llama3_latest.csv").exists()

@@ -6,6 +6,12 @@ The prompt has B's template. Pages are generated filler text, not manual text. E
 the instruction head, the start and the end of each page, and the question. The question asks the model to list every
 code it can read. A code that is missing from the reply was not seen. Page 1 is the page B ranks first.
 Shapes: 2 pages (control, fits), then 3, 5 and 8 pages. Output: survival_<model>.csv and replies_<model>.jsonl.
+
+A model that lists codes can miss a code that it was shown, so the listing alone does not prove that a part was cut.
+The probe step asks one question per code: which code word follows a given label, for example "Reference code for page 3
+start:". The label is in the question and the code word is not, so only a model that can read the part can answer.
+It runs on 1, 5 and 8 pages, with a label that is not in the prompt as a negative control. The one-page prompt fits
+every window and shows how reliable the answers are when nothing is cut. Output: probe_<model>.csv.
 """
 import csv, json, os, random, re, sys
 
@@ -32,7 +38,10 @@ def filler(seed, chars):
     return " ".join(out)
 
 
-def build(cfg, pages):
+PROBE_SHAPES = [1, 5, 8]
+
+
+def build(cfg, pages, ask=QUESTION):
     """Returns the prompt and the list of (position label, code word) in prompt order."""
     codes = iter(WORDS)
     marks = []
@@ -47,10 +56,44 @@ def build(cfg, pages):
     for i in range(1, pages + 1):
         start = mark(f"page {i} start")
         body.append(f"Reference code for page {i} start: {start}. " + filler(i, PAGE_CHARS) + f" Reference code for page {i} end: {mark(f'page {i} end')}.")
-    q = f"Reference code for the question: {mark('question')}. {QUESTION}"
+    q = f"Reference code for the question: {mark('question')}. {ask}"
     b = cfg["b"]["grounding"]
     text = b["template"].replace("{shortest_line}", b["shortest_line"]).replace("{context}", "\n\n".join(body)).replace("{question}", q)
     return head + text, marks
+
+
+LABELS = {"instructions": "Reference code for the instructions:", "question": "Reference code for the question:"}
+
+
+def label_for(part):
+    if part in LABELS:
+        return LABELS[part]
+    m = re.match(r"page (\d+) (start|end)", part)
+    return f"Reference code for page {m.group(1)} {m.group(2)}:"
+
+
+def probe(out_dir, model, cfg_path="config/pipelines.json"):
+    """One question per code. Writes probe_<model>.csv and returns the rows."""
+    cfg = json.load(open(cfg_path))
+    rows = []
+    for pages in PROBE_SHAPES:
+        _, marks = build(cfg, pages)
+        asked = [(part, word, label_for(part)) for part, word in marks] + [("not in prompt", None, "Reference code for page 99 start:")]
+        for part, word, label in asked:
+            ask = f'Which code word follows the text "{label}" in this message? Answer with the code word only, or none if the text is not there.'
+            prompt, _ = build(cfg, pages, ask)
+            r = cp.call("/api/chat", {"model": model, "messages": [{"role": "user", "content": prompt}], "stream": False,
+                                      "options": {"temperature": 0, "seed": 42, "num_predict": 8}})
+            reply = r["message"]["content"].strip()
+            rows.append({"model": model, "pages": pages, "window": cp.window(model), "tokens_used": r["prompt_eval_count"], "part": part,
+                         "in_prompt": word is not None, "correct": word is not None and word in reply.upper(),
+                         "said_none": "none" in reply.lower()})
+            print(json.dumps(rows[-1]), flush=True)
+    with open(f"{out_dir}/probe_{model.replace(':', '_')}.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(rows[0]))
+        w.writeheader()
+        w.writerows(rows)
+    return rows
 
 
 def run(out_dir, model, cfg_path="config/pipelines.json"):
@@ -68,6 +111,7 @@ def run(out_dir, model, cfg_path="config/pipelines.json"):
         reply = r["message"]["content"]
         seen = set(re.findall(r"[A-Za-z]+", reply.upper()))
         replies.append({"model": model, "pages": pages, "reply": reply})
+        print(json.dumps({"pages": pages, "reply_head": reply[:160]}), flush=True)
         for pos, (label, word) in enumerate(marks, 1):
             rows.append({"model": model, "pages": pages, "window": window, "tokens_offered": offered, "tokens_used": r["prompt_eval_count"],
                          "truncated": offered > window, "position": pos, "part": label, "listed_by_model": word in seen})
@@ -86,4 +130,8 @@ def run(out_dir, model, cfg_path="config/pipelines.json"):
 
 
 if __name__ == "__main__":
-    run(sys.argv[1], sys.argv[2])
+    if len(sys.argv) > 3 and sys.argv[3] == "probe":
+        os.makedirs(sys.argv[1], exist_ok=True)
+        probe(sys.argv[1], sys.argv[2])
+    else:
+        run(sys.argv[1], sys.argv[2])

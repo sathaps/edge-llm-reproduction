@@ -12,7 +12,7 @@ on:
 jobs:
   survival:
     runs-on: ubuntu-latest
-    timeout-minutes: 240
+    timeout-minutes: 340
     strategy:
       fail-fast: false
       matrix:
@@ -31,6 +31,8 @@ jobs:
           ollama pull "${{ matrix.model }}"
       - name: Ask the model which reference codes it can see
         run: python3 scripts/check_prompt_survival.py out/survival "${{ matrix.model }}"
+      - name: Ask one yes or no question per reference code
+        run: python3 scripts/check_prompt_survival.py out/survival "${{ matrix.model }}" probe
       - uses: actions/upload-artifact@v4
         if: always()
         with:
