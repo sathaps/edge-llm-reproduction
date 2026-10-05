@@ -87,20 +87,20 @@ def test_blind_export_shuffles_hides_configuration_and_round_trips(tmp_path):
     key = blind_export.export(runs, qs, out, seed=7)
     key2 = blind_export.export(runs, qs, tmp_path / "again", seed=7)
     assert key == key2
-    assert json.load(open(out / "export.json")) == {"seed": 7, "rows": 12}
+    assert json.load(open(out / "export.json")) == {"seed": 7, "answers_shown": 6, "answers_total": 12}
 
     blind = marks.read_csv(out / "sheet_blind.csv")
-    assert len(blind) == 12 and len({r["answer_id"] for r in blind}) == 12
-    text = open(out / "sheet_blind.csv").read() + open(out / "sheet_support.csv").read() + open(out / "suggestions.csv").read()
+    assert len(blind) == 6 and len({r["answer_id"] for r in blind}) == 6  # identical answers are shown once
+    text = open(out / "sheet_blind.csv").read() + open(out / "sheet_support.csv").read() + open(out / "rubric_marks.csv").read()
     assert "A-llama3" not in text and "B-llama3" not in text and "ra" not in {r["answer_id"] for r in blind}
     configs_in_order = [r["config_id"] for r in marks.read_csv(out / "key.csv")]
     assert configs_in_order != sorted(configs_in_order)
 
-    sugg = {r["answer_id"]: r for r in marks.read_csv(out / "suggestions.csv")}
+    auto = {r["answer_id"]: r for r in marks.read_csv(out / "rubric_marks.csv")}
     for r in blind:
-        s = sugg[r["answer_id"]]
-        assert (s["suggested_abstained"] == "yes") == ("do not know" in r["answer"])
-        assert (s["suggested_complete"] == "yes") == ("alpha and beta" in r["answer"])
+        a = auto[r["answer_id"]]
+        assert (a["abstained"] == "yes") == ("do not know" in r["answer"])
+        assert (a["complete"] == "yes") == ("alpha and beta" in r["answer"])
 
     for r in blind:
         r["correct"] = "yes" if "alpha" in r["answer"] else "no"
@@ -111,7 +111,7 @@ def test_blind_export_shuffles_hides_configuration_and_round_trips(tmp_path):
             w.writeheader()
             w.writerows(rows)
     marked = marks.join_marks(marks.read_csv(out / "sheet_blind.csv"), marks.read_csv(out / "sheet_support.csv"), marks.read_csv(out / "key.csv"))
-    assert len(marked) == 12
+    assert len(marked) == 12  # one mark per answer shown, applied to every configuration behind it
     table = marks.counts(marked)
     assert table[("A-llama3", "self_contained")] == {"N": 6, "yes": 3, "partial": 0}
     assert table[("B-llama3", "self_contained")]["N"] == 6
@@ -178,3 +178,73 @@ def test_retrieval_table_leaves_out_unanswerable_and_exclusion_table_counts_appl
     exc = st.exclusion_table(rows).splitlines()[-1]
     assert "2 of 2" in ret and ret.count("n/a") == 4
     assert "1 of 2" in exc and exc.count("n/a") == 4
+
+
+def test_identical_answers_are_shown_once_and_different_ones_apart(tmp_path):
+    qs = [question("q0", "self_contained"), question("q1", "self_contained")]
+    runs = {"A": make_run(tmp_path, "ra", {"q0": "same text", "q1": "only A"}),
+            "B": make_run(tmp_path, "rb", {"q0": "same   text", "q1": "only B"})}
+    key = blind_export.export(runs, qs, tmp_path / "m", seed=2)
+    blind = marks.read_csv(tmp_path / "m" / "sheet_blind.csv")
+    assert len(blind) == 3 and len(key) == 4
+    shared = [k["answer_id"] for k in key if k["question_id"] == "q0"]
+    assert len(set(shared)) == 1 and {k["config_id"] for k in key if k["answer_id"] == shared[0]} == {"A", "B"}
+
+
+def test_rubric_scores_each_category():
+    import rubric
+    q = lambda cat, elems: {"category": cat, "required_elements": elems, "question": "How is the 5 psi limit set?"}
+    r = rubric.score_answer(q("self_contained", "close the breaker|set the selector~select RUN"), "First close the breaker, then select RUN.")
+    assert r["correct"] == "yes" and r["complete"] == "yes" and r["elements_found"] == "2 of 2"
+    r = rubric.score_answer(q("self_contained", "close the breaker|set the selector~select RUN"), "Close the breaker.")
+    assert r["correct"] == "partial" and r["complete"] == "no" and r["elements_found"] == "1 of 2"
+    r = rubric.score_answer(q("self_contained", "close the breaker"), "Press the green button.")
+    assert r["correct"] == "no"
+    r = rubric.score_answer(q("unanswerable", "ABSTAIN"), "The manual does not cover that.")
+    assert r["correct"] == "yes" and r["abstained"] == "yes"
+    r = rubric.score_answer(q("unanswerable", "ABSTAIN"), "It is 40 psi.")
+    assert r["correct"] == "no" and r["unsupported_content"] == "yes" and r["numbers_not_in_context"] == "40"
+    r = rubric.score_answer(q("applicability", "applies only to~only for MKII"), "This applies only to the new style.")
+    assert r["respects_applicability"] == "yes"
+    r = rubric.score_answer(q("applicability", "applies only to~only for MKII"), "Step 1. Open the door. Step 2. Press test.")
+    assert r["respects_applicability"] == "no" and r["gave_procedure"] == "yes"
+    r = rubric.score_answer(q("self_contained", "5 psi"), "Set it to 5 psi.", retrieved_text="limit of 5 psi")
+    assert r["unsupported_content"] == "no"
+
+
+def test_agreement_counts_n_of_n_per_criterion():
+    import agreement
+    pairs = [({"correct": "yes", "complete": "yes", "abstained": "no", "respects_applicability": "", "unsupported_content": "no"},
+              {"correct": "yes", "complete": "no", "abstained": "no", "respects_applicability": "", "unsupported_content": ""}),
+             ({"correct": "partial", "complete": "no", "abstained": "no", "respects_applicability": "yes", "unsupported_content": "no"},
+              {"correct": "no", "complete": "no", "abstained": "yes", "respects_applicability": "yes", "unsupported_content": "no"})]
+    r = agreement.agreement(pairs)
+    assert r["correct"] == {"N": 2, "agree": 1, "agree_yes_vs_not_yes": 2}
+    assert r["complete"] == {"N": 2, "agree": 1, "agree_yes_vs_not_yes": 1}
+    assert r["abstained"]["agree"] == 1 and r["respects_applicability"]["N"] == 1 and r["unsupported_content"]["N"] == 1
+    assert "| correct | 1 of 2 | 2 of 2 |" in agreement.render(r)
+
+
+def test_command_line_scoring_and_agreement(tmp_path):
+    import run_scoring
+    qs = [question(f"q{i}", "self_contained", elems="alpha|beta") for i in range(4)]
+    with open(tmp_path / "q.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=qmod.COLUMNS)
+        w.writeheader()
+        w.writerows(qs)
+    answers = {"q0": "alpha and beta", "q1": "alpha only", "q2": "I do not know", "q3": "alpha and beta again"}
+    run = make_run(tmp_path, "ra", answers)
+    assert run_scoring.main(["score", str(tmp_path / "q.csv"), str(tmp_path / "auto.csv"), f"A@1={run}"]) == 0
+    auto = marks.read_csv(tmp_path / "auto.csv")
+    assert [r["correct"] for r in auto] == ["yes", "partial", "no", "yes"]
+    assert run_scoring.main(["export", str(tmp_path / "q.csv"), str(tmp_path / "m"), "5", f"A@1={run}"]) == 0
+    blind = marks.read_csv(tmp_path / "m" / "sheet_blind.csv")
+    for r in blind:   # the person agrees with the rubric except on the partial answer
+        r["correct"] = "no" if r["answer"] == "alpha only" else ("yes" if "beta" in r["answer"] else "no")
+        r["complete"] = "yes" if "beta" in r["answer"] else "no"
+        r["abstained"] = "yes" if "know" in r["answer"] else "no"
+    with open(tmp_path / "m" / "sheet_blind.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(blind[0]))
+        w.writeheader()
+        w.writerows(blind)
+    assert run_scoring.main(["agreement", str(tmp_path / "m")]) == 0

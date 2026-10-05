@@ -5,12 +5,16 @@
   run_scoring.py retrieval questions/questions.csv OUT.csv LABEL=RUN_DIR [LABEL=RUN_DIR ...]
   run_scoring.py export questions/questions.csv OUT_DIR SEED LABEL=RUN_DIR [LABEL=RUN_DIR ...]
   run_scoring.py join MARKING_DIR OUT_DIR
+  run_scoring.py score questions/questions.csv OUT.csv LABEL=RUN_DIR [LABEL=RUN_DIR ...]
+  run_scoring.py agreement MARKING_DIR
+  run_scoring.py tables retrieval|exclusion|correct ...   (see summary_tables.py)
 """
+import csv
 import json
 import sys
 from pathlib import Path
 
-import blind_export, marks, questions, retrieval_score
+import agreement, blind_export, marks, questions, retrieval_score, rubric, summary_tables
 
 
 def runs_from(args):
@@ -44,6 +48,33 @@ def main(argv):
         marks.write_outcomes(marked, out / "outcomes_by_question.csv")
         for (config, cat), c in marks.counts(marked).items():
             print(f"{config}\t{cat}\t{c['yes']} of {c['N']} correct\t{c['partial']} partial")
+        return 0
+    if cmd == "score":
+        qs = {q["id"]: q for q in questions.verified(questions.read_questions(rest[0]))}
+        rows = []
+        for label, run_dir in runs_from(rest[2:]).items():
+            answers, retrieval, chunks = blind_export.load_run(run_dir)
+            for a in answers:
+                if a["question_id"] in qs:
+                    context = " ".join(chunks[h["chunk_id"]]["text"] for h in retrieval[a["question_id"]]["retrieved"])
+                    rows.append({"config_id": label, "question_id": a["question_id"], **rubric.score_answer(qs[a["question_id"]], a["answer"], context)})
+        with open(rest[1], "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=list(rows[0]) if rows else [])
+            w.writeheader()
+            w.writerows(rows)
+        return 0
+    if cmd == "agreement":
+        d = Path(rest[0])
+        key = marks.read_csv(d / "key.csv")
+        person = {r["answer_id"]: r for r in marks.read_csv(d / "sheet_blind.csv") if r["correct"].strip()}
+        support = {r["answer_id"]: r for r in marks.read_csv(d / "sheet_support.csv")}
+        auto = {r["answer_id"]: r for r in marks.read_csv(d / "rubric_marks.csv")}
+        pairs = []
+        for aid, p in person.items():
+            p = {**p, "unsupported_content": support.get(aid, {}).get("unsupported_content", "")}
+            pairs.append((auto[aid], p))
+        print(agreement.render(agreement.agreement(pairs)), end="")
+        print(f"answers marked: {len(pairs)} of {len(auto)} shown; configurations behind them: {sum(1 for k in key if k['answer_id'] in person)}")
         return 0
     print(__doc__)
     return 2

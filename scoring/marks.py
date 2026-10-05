@@ -8,14 +8,17 @@ def read_csv(path):
 
 
 def join_marks(sheet_blind, sheet_support, key):
-    """Join the marked sheets to the key. Rows with an empty correct mark are not yet marked and are left out."""
+    """Join the marked sheets to the key, one row per configuration behind each marked answer.
+
+    Answers with an empty correct mark are not yet marked and are left out.
+    """
     support = {r["answer_id"]: r for r in sheet_support}
-    keys = {r["answer_id"]: r for r in key}
+    marks = {r["answer_id"]: r for r in sheet_blind if r["correct"].strip()}
     out = []
-    for r in sheet_blind:
-        if not r["correct"].strip():
+    for k in key:
+        r = marks.get(k["answer_id"])
+        if r is None:
             continue
-        k = keys[r["answer_id"]]
         out.append({"answer_id": r["answer_id"], "config_id": k["config_id"], "question_id": k["question_id"],
                     "category": r["category"], "correct": r["correct"].strip().lower(),
                     "complete": r["complete"].strip().lower(), "respects_applicability": r["respects_applicability"].strip().lower(),

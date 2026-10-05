@@ -10,7 +10,7 @@
 | `reference_answer` | the correct answer, from the manual |
 | `source_pages` | PDF page numbers that hold the answer, for example `12;14-15`. Empty for `unanswerable`. |
 | `exclusion_pages` | applicability questions only: the pages that state the exclusion |
-| `required_elements` | what a correct answer must contain, separated by `\|` |
+| `required_elements` | what a correct answer must contain, separated by `\|`. Write `a~b` for an element met by either wording. Use `ABSTAIN` alone for an unanswerable question |
 | `verified_by`, `verified_on` | filled in by the person who checked the reference answer against the manual |
 
 A question with an empty `verified_by` is excluded from scoring.
