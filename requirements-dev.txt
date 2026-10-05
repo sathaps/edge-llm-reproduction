@@ -1,0 +1,5 @@
+numpy
+pypdf
+pytest
+fpdf2
+openpyxl

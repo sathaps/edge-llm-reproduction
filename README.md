@@ -34,7 +34,7 @@ This repository re-implements, on public material, two configurations of a docum
     dotnet run --project pipelines/b_dotnet -- --pdf MANUAL.pdf --model llama3:latest --out results/<run-id>
     dotnet run --project gate/modelrun -- --requests gate/proposals/requests.json --model llama3:latest --out results/<run-id>
 
-Both pipelines accept `--ollama URL`, `--questions CSV`, `--set path=value`, `--conversation fresh|chained` and `--retrieval-only`. Python dependencies are in `pipelines/a_python/requirements.txt`; the tests also need `pytest` and `fpdf2`.
+Both pipelines accept `--ollama URL`, `--questions CSV`, `--set path=value`, `--conversation fresh|chained` and `--retrieval-only`. Python dependencies of Implementation A are in `pipelines/a_python/requirements.txt`; the tests and scoring tools need those in `requirements-dev.txt`.
 
 ## Rules for results
 

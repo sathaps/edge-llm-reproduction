@@ -248,3 +248,24 @@ def test_command_line_scoring_and_agreement(tmp_path):
         w.writeheader()
         w.writerows(blind)
     assert run_scoring.main(["agreement", str(tmp_path / "m")]) == 0
+
+
+def test_verification_pack_has_one_row_per_question_and_empty_verdict_columns(tmp_path):
+    import make_verification_pack as mv
+    from openpyxl import load_workbook
+    draft = tmp_path / "draft.csv"
+    with open(draft, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=mv.COLUMNS)
+        w.writeheader()
+        for i in range(3):
+            w.writerow({"id": f"q{i}", "category": "self_contained", "question": f"question {i}", "reference_answer": "ref",
+                        "source_pages": "4", "exclusion_pages": "", "required_elements": "a|b", "passage": f"passage text {i}"})
+    assert mv.main(str(draft), str(tmp_path / "pack")) == 3
+    wb = load_workbook(tmp_path / "pack" / "verification_pack.xlsx")
+    ws = wb["questions"]
+    header = [c.value for c in ws[1]]
+    assert header[-4:] == ["verdict", "correction", "verified_by", "verified_on"]
+    assert ws.max_row == 4 and ws.cell(row=2, column=header.index("passage") + 1).value == "passage text 0"
+    assert all(ws.cell(row=r, column=header.index("verdict") + 1).value in (None, "") for r in range(2, 5))
+    rows = marks.read_csv(tmp_path / "pack" / "verification_pack.csv")
+    assert len(rows) == 3 and rows[0]["verdict"] == ""

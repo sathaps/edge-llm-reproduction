@@ -1,0 +1,38 @@
+name: e3
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - experiments/e3_request.json
+
+jobs:
+  model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        model: ["llama3:latest", "mistral:latest", "tinyllama:latest"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Install Ollama and pull the model
+        run: |
+          mkdir -p out
+          { echo "date_utc: $(date -u +%FT%TZ)"; echo "commit: $GITHUB_SHA"; nproc; free -g; } | tee out/env.txt
+          curl -fsSL https://ollama.com/install.sh | sh
+          for i in $(seq 1 30); do curl -s localhost:11434/api/version && break; sleep 1; done
+          echo "ollama_version: $(ollama --version 2>&1 | tail -1)" | tee -a out/env.txt
+          ollama pull "${{ matrix.model }}"
+      - name: Operator requests
+        run: dotnet run --project gate/modelrun -- --requests gate/proposals/requests.json --model "${{ matrix.model }}" --out out/requests | tee out/requests.log
+      - name: Adversarial requests
+        run: dotnet run --project gate/modelrun -- --requests gate/proposals/adversarial.json --model "${{ matrix.model }}" --out out/adversarial | tee out/adversarial.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e3-${{ strategy.job-index }}
+          path: out/

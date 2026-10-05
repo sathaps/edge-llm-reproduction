@@ -5,7 +5,7 @@ import pytest
 from fpdf import FPDF
 
 ROOT = Path(__file__).resolve().parent.parent
-sys.path[:0] = [str(ROOT / "pipelines" / "a_python"), str(ROOT / "tools"), str(ROOT / "scoring")]
+sys.path[:0] = [str(ROOT / "pipelines" / "a_python"), str(ROOT / "tools"), str(ROOT / "scoring"), str(ROOT / "scripts")]
 
 from stub_ollama import Stub  # noqa: E402
 
