@@ -26,7 +26,8 @@ var embedder = new OllamaEmbeddingModel(provider, cfg.Str("embedding_model"));
 var embedEndpoint = cfg["embedding_endpoint"]?.GetValue<string>() ?? "embed";
 
 var docs = await new PdfPigPdfLoader().LoadAsync(DataSource.FromPath(opt.Pdf), new DocumentLoaderSettings { ShouldCollectMetadata = true });
-var pageTexts = docs.Select(d => d.PageContent).ToList();
+var repairShift = cfg["extraction"]?["repair_shift"]?.GetValue<bool>() ?? false;
+var pageTexts = docs.Select(d => repairShift ? Extraction.RepairShift(d.PageContent) : d.PageContent).ToList();
 var chunks = Chunker.Build(cfg, pageTexts);
 File.WriteAllLines(Path.Combine(opt.Out, "chunks.jsonl"),
     chunks.Select(c => JsonSerializer.Serialize(new { chunk_id = c.Id, pages = c.Pages, text = c.Text })));
@@ -218,6 +219,22 @@ static class Questions
         var list = rows.Skip(1).Where(r => r.Count > Math.Max(iId, iQ))
             .Select(r => new Question(r[iId], r[iQ], iP >= 0 && iP < r.Count ? r[iP] : "")).ToList();
         return o.Limit is int n ? list.Take(n).ToList() : list;
+    }
+}
+
+static class Extraction
+{
+    static readonly System.Text.RegularExpressions.Regex Common = new(@"\b(the|and|to|of|is|or|for|in|if|that|with|are|not|be)\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    // Fonts without a Unicode map give glyph codes that sit 29 code points below the letters.
+    static string ShiftBack(string text) => new(text.Select(c => c >= 3 && c <= 94 ? (char)(c + 29) : c).ToArray());
+
+    public static string RepairShift(string text)
+    {
+        var raw = Common.Matches(text).Count;
+        var shifted = ShiftBack(text);
+        var back = Common.Matches(shifted).Count;
+        return back >= 5 && back > 3 * raw ? shifted : text;
     }
 }
 

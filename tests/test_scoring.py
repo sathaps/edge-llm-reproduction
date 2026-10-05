@@ -342,3 +342,16 @@ def test_summary_tables_name_run_and_commit(tmp_path):
     assert len(check_index.problems(tmp_path)) == 1
     (tmp_path / "summary.md").write_text("## A\n\nSource: run 1, commit abc. Index entry: `zz`.\n\n| a |\n")
     assert "zz" in check_index.problems(tmp_path)[0]
+
+
+def test_freeze_manifest_detects_a_changed_file(tmp_path, monkeypatch):
+    import freeze_manifest as fm
+    (tmp_path / "a.txt").write_text("one")
+    monkeypatch.setattr(fm, "ROOT", tmp_path)
+    monkeypatch.setattr(fm, "FROZEN", ["a.txt"])
+    fm.write(tmp_path / "m")
+    assert fm.check(tmp_path / "m") == []
+    (tmp_path / "a.txt").write_text("two")
+    assert fm.check(tmp_path / "m") == ["a.txt: changed"]
+    (tmp_path / "a.txt").unlink()
+    assert fm.check(tmp_path / "m") == ["a.txt: missing"]

@@ -21,8 +21,11 @@ jobs:
           fetch-depth: 0
       - name: Require the frozen protocol
         run: |
-          git tag --list 'protocol-v*'
-          git merge-base --is-ancestor protocol-v1 HEAD || { echo "protocol-v1 is missing or is not an ancestor of this commit"; exit 1; }
+          tag=$(git tag --list 'protocol-v*' | sort -V | tail -1)
+          echo "latest protocol tag: ${tag:-none}"
+          [ -n "$tag" ] || { echo "no protocol-v tag; E1 starts only after the freeze"; exit 1; }
+          git merge-base --is-ancestor "$tag" HEAD || { echo "$tag is not an ancestor of this commit"; exit 1; }
+          python3 scripts/freeze_manifest.py check "$tag.manifest"
       - id: matrix
         env:
           INPUT_REPS: ${{ inputs.reps }}

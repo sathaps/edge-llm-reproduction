@@ -5,6 +5,9 @@
   },
   "a": {
     "embedding_model": "mxbai-embed-large",
+    "extraction": {
+      "repair_shift": false
+    },
     "chunking": {
       "kind": "sentence_groups",
       "max_chars": 1000
@@ -32,6 +35,9 @@
   "b": {
     "embedding_model": "all-minilm",
     "embedding_endpoint": "embed",
+    "extraction": {
+      "repair_shift": false
+    },
     "chunking": {
       "kind": "page"
     },

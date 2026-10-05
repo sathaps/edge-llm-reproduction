@@ -64,9 +64,23 @@ class Ollama:
         return None
 
 
-def flatten_pages(pdf_path):
+COMMON_WORDS = re.compile(r"\b(the|and|to|of|is|or|for|in|if|that|with|are|not|be)\b", re.I)
+
+
+def shift_back(text):
+    """Fonts without a Unicode map give glyph codes that sit 29 code points below the letters."""
+    return "".join(chr(ord(c) + 29) if 3 <= ord(c) <= 94 else c for c in text)
+
+
+def repair_shift(text):
+    """Decode a page that reads as English only after the shift is undone. Other pages are returned as they are."""
+    raw, back = len(COMMON_WORDS.findall(text)), len(COMMON_WORDS.findall(shift_back(text)))
+    return shift_back(text) if back >= 5 and back > 3 * raw else text
+
+
+def flatten_pages(pdf_path, repair=False):
     """Whitespace-flattened text of the whole document, plus the offset where each page starts."""
-    pages = [re.sub(r"\s+", " ", (p.extract_text() or "")).strip() for p in PdfReader(pdf_path).pages]
+    pages = [re.sub(r"\s+", " ", (repair_shift(p.extract_text() or "") if repair else (p.extract_text() or ""))).strip() for p in PdfReader(pdf_path).pages]
     starts, text = [], ""
     for page in pages:
         starts.append(len(text))
@@ -140,7 +154,7 @@ def run(args):
     ollama = Ollama(args.ollama)
     os.makedirs(args.out, exist_ok=True)
 
-    text, starts = flatten_pages(args.pdf)
+    text, starts = flatten_pages(args.pdf, cfg.get("extraction", {}).get("repair_shift", False))
     chunks = chunk_text(text, starts, cfg["chunking"]["max_chars"])
     t0 = time.time()
     # upstream embeds the lines of vault.txt, which end with a newline

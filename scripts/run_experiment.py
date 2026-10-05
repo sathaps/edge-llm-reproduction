@@ -9,7 +9,7 @@ Output: <out>/env.txt, <out>/<cell>/rep-N/ (the pipeline's files) and <out>/reso
 import argparse, csv, json, os, subprocess, sys, time
 from pathlib import Path
 
-import count_offered
+import count_offered, garbled_chunks
 
 ROOT = Path(__file__).resolve().parent.parent
 OLLAMA_COMM = ("ollama", "llama-server", "ollama_llama")
@@ -142,6 +142,8 @@ def main(argv=None):
                                                          stdout=open(rep_dir / "stdout.txt", "w"), stderr=subprocess.STDOUT)
             if (rep_dir / "prompts.jsonl").exists():
                 count_offered.annotate(rep_dir, args.ollama)
+            if (rep_dir / "chunks.jsonl").exists():
+                garbled_chunks.measure(rep_dir)
             run = json.load(open(rep_dir / "run.json")) if (rep_dir / "run.json").exists() else {}
             answers = [json.loads(l) for l in open(rep_dir / "answers.jsonl")] if (rep_dir / "answers.jsonl").exists() else []
             rows.append({"experiment": exp["id"], "cell": cell["id"], "rep": rep, "exit_code": code, "wall_s": round(wall, 3),

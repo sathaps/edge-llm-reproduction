@@ -201,3 +201,17 @@ def test_probe_asks_for_the_code_after_a_label_and_has_a_negative_control(tmp_pa
     eight = {r["part"]: r for r in rows if r["pages"] == 8}
     assert not eight["instructions"]["correct"] and eight["page 8 end"]["correct"] and eight["question"]["correct"]
     assert (tmp_path / "probe_llama3_latest.csv").exists()
+
+
+def test_garbled_chunks_are_counted_with_pages_only(tmp_path):
+    import garbled_chunks as gc
+    good = "The unit is started when the selector is set and the fuel valve is open. " * 6
+    bad = "\x03\x03&RROLQJ\x03/RRS\x035DZ\x03:DWHU" * 30
+    (tmp_path / "chunks.jsonl").write_text("".join(json.dumps(c) + "\n" for c in [
+        {"chunk_id": "a", "pages": [1], "text": good}, {"chunk_id": "b", "pages": [2, 3], "text": bad}]))
+    (tmp_path / "retrieval.jsonl").write_text("".join(json.dumps(r) + "\n" for r in [
+        {"question_id": "q1", "retrieved": [{"chunk_id": "a"}, {"chunk_id": "b"}]}, {"question_id": "q2", "retrieved": [{"chunk_id": "a"}]}]))
+    out = gc.measure(tmp_path)
+    assert out["garbled_chunks"] == 1 and out["pages_with_a_garbled_chunk"] == [2, 3]
+    assert (out["retrieved_slots"], out["garbled_slots"], out["questions_with_a_garbled_chunk"]) == (3, 1, 1)
+    assert "text" not in json.dumps(out)

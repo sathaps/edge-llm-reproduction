@@ -97,6 +97,14 @@
       "set": [
         "query_rewriting={\"from_turn\": 2, \"history_messages\": 2, \"template\": \"Rewrite the following query by incorporating relevant context from the conversation history.\\n    The rewritten query should:\\n    \\n    - Preserve the core intent and meaning of the original query\\n    - Expand and clarify the query to make it more specific and informative for retrieving relevant context\\n    - Avoid introducing new topics or queries that deviate from the original query\\n    - DONT EVER ANSWER the Original query, but instead focus on rephrasing and expanding it into a new query\\n    \\n    Return ONLY the rewritten query text, without any additional formatting or explanations.\\n    \\n    Conversation History:\\n    {history}\\n    \\n    Original query: [{question}]\\n    \\n    Rewritten query: \\n    \", \"role\": \"system\"}"
       ]
+    },
+    {
+      "id": "E2j-extraction-repaired",
+      "impl": "b",
+      "model": "$E2_MODEL",
+      "set": [
+        "extraction.repair_shift=true"
+      ]
     }
   ]
 }

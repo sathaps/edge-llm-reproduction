@@ -99,11 +99,14 @@ The question set, `required_elements`, the automatic scorer, the marking rules a
 | E2f | Query rewriting: off versus on |
 | E2h | Bracket, no retrieval: the prompt has the question and an empty context. This is generation without any manual text |
 | E2i | Bracket, oracle retrieval: the context is the full text of the reference pages (`source_pages`). Unanswerable questions have no reference pages and get an empty context |
+| E2j (low priority) | Extraction repaired by the constant-shift decode: pages whose text reads as English only after the shift is undone are decoded before chunking, in A and in B. The baseline does not repair extraction |
 | E2g | Context window raised to fit: `num_ctx` 8192 (the trained length of llama3) so that the eight-page prompts are not cut; the other cells keep the default window |
 
 E2h and E2i separate retrieval failure from generation failure. A question that fails with oracle context is a generation failure. A question that passes with oracle context and fails in the base cell is a retrieval failure. A question that passes with an empty context is answerable from the model's own knowledge, and the notes count those.
 
 E2a and E2e together test whether chunking matters more than model choice. E2b and E2e together separate prompt from model size in the applicability case.
+
+**Garbled pages (a measured property).** Some pages of the primary manual extract as shifted glyph codes (`results/notes.md` lists them). The baseline leaves them as they are, like the original builds. Every E1 and E2 run stores `garbled.json`: chunks and vectors, garbled chunks, the pages they come from, and how many retrieved slots and how many questions meet a garbled chunk. No question depends on a garbled page.
 
 **E3. The gate.** `gate/src/DeterministicGate.cs` is the gate described in the article. It was compiled into the original build and never exercised there. The state reader in E3 is a stand-in with fixed values, and results say so.
 
@@ -145,10 +148,9 @@ The marking stays at full strength. The maintainer marks every answer of E1 repe
 | Id | Comparison | Data |
 |---|---|---|
 | P1 to P3 | A against B, for each of llama3, mistral and tinyllama (E1 cells with the same model) | E1 repeat 1, marked |
-| P4 to P15 | Each E2 cell against the E2 base cell: E2a sentence groups, E2a procedure, E2b supplement, E2c no stop, E2c no shortest-answer line, E2d threshold, E2e small, E2e large, E2f rewriting, E2g raised window, E2h no retrieval, E2i oracle | E2 repeat 1, automatic scorer |
-| P16 | Defaults against the context window raised to fit: E2 base against E2g, restated as its own planned test | E2 repeat 1, automatic scorer |
+| P4 to P16 | Each E2 cell against the E2 base cell: E2a sentence groups, E2a procedure, E2b supplement, E2c no stop, E2c no shortest-answer line, E2d threshold, E2e small, E2e large, E2f rewriting, E2g raised window, E2h no retrieval, E2i oracle, E2j extraction repaired | E2 repeat 1, automatic scorer |
 
-P16 uses the same pair as P14 and is listed once in the tables, so the family has 15 tests. Where repeats 2 and 3 exist, the same tests are repeated on them and shown as a stability check. `scoring/analysis.py` computes all of it from the per-question outcome table, and `experiments/comparisons.json` is the machine-readable list.
+The comparison of the defaults against the context window raised to fit is P14 (E2g against the base). The family has 16 tests. Where repeats 2 and 3 exist, the same tests are repeated on them and shown as a stability check. `scoring/analysis.py` computes all of it from the per-question outcome table, and `experiments/comparisons.json` is the machine-readable list.
 
 ## 8. Outputs
 

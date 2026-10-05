@@ -1,5 +1,5 @@
 {
-  "note": "P16 (defaults against raised window) uses the pair of E2g and is not repeated here. The family has 15 tests.",
+  "note": "The defaults against the raised window (E2g) is P14. The family has 16 tests.",
   "comparisons": [
     {
       "id": "P1",
@@ -118,6 +118,14 @@
       "family": "E2 against base",
       "a": "base",
       "b": "E2i-oracle",
+      "rep": 1,
+      "data": "E2 repeat 1, automatic scorer"
+    },
+    {
+      "id": "P16",
+      "family": "E2 against base",
+      "a": "base",
+      "b": "E2j-extraction-repaired",
       "rep": 1,
       "data": "E2 repeat 1, automatic scorer"
     }

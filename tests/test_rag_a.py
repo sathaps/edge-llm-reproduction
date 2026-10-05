@@ -103,3 +103,12 @@ def test_retrieval_only_makes_no_chat_calls(pdf_path, url, stub, tmp_path):
     out = run_a(pdf_path, url, tmp_path, "--retrieval-only")
     assert not [1 for p, _ in stub.requests if p == "/api/chat"]
     assert not (out / "answers.jsonl").exists()
+
+
+def test_repair_shift_decodes_only_pages_that_read_as_english_after_the_shift():
+    text = "The unit is started when the selector is set and the fuel valve is open. It is not to be run if the oil is low."
+    garbled = "".join(chr(ord(c) - 29) if 32 <= ord(c) + 0 <= 123 and c != "\n" else c for c in text)
+    assert rag_a.shift_back(garbled) == text
+    assert rag_a.repair_shift(garbled) == text
+    assert rag_a.repair_shift(text) == text
+    assert rag_a.repair_shift("Table 4 values 134 974 4 RED 223 1265") == "Table 4 values 134 974 4 RED 223 1265"
