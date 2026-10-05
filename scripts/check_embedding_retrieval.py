@@ -2,7 +2,9 @@
 """Measure whether text beyond an embedding model's window can be found through its page vector.
 
 usage: check_embedding_retrieval.py <pages-dir> <out-dir> [model ...]
-Each page is embedded once, as B does (one vector per page, the legacy /api/embeddings endpoint, Euclidean distance).
+Each page is embedded once, as B does (one vector per page, Euclidean distance). The vectors come from /api/embed, which
+cuts an over-long input to the window. The legacy /api/embeddings endpoint that LangChain .NET calls refuses such input
+with HTTP 500 under Ollama 0.35.1 (see check_legacy_embed.py), so it cannot be used for page vectors.
 A page is cut into passages of three consecutive sentences. A passage is "inside" when it lies wholly within the longest
 prefix of its page that fits the window, and "beyond" when it starts after that prefix. Each passage is queried with its
 own first sentence. A query is a hit when its page is among the 5 nearest page vectors. Queries whose sentence also occurs
@@ -22,9 +24,8 @@ PASSAGE_SENTENCES = 3
 MIN_QUERY_WORDS = 5
 
 
-def legacy_embed(model, text):
-    req = urllib.request.Request(ce.BASE + "/api/embeddings", json.dumps({"model": model, "prompt": text}).encode(), {"Content-Type": "application/json"})
-    return json.load(urllib.request.urlopen(req, timeout=600))["embedding"]
+def embed_vector(model, text):
+    return ce.embed(model, text)[0]
 
 
 def distance(a, b):
@@ -63,7 +64,7 @@ def run(pages_dir, out_dir, models, seed=42):
     for model in models:
         ce.embed(model, "warm up")
         window = ce.window(model)
-        vectors = {number: legacy_embed(model, text) for number, text in pages}
+        vectors = {number: embed_vector(model, text) for number, text in pages}
         pool = {"inside": [], "beyond": []}
         long_pages = 0
         for number, text in pages:
@@ -84,7 +85,7 @@ def run(pages_dir, out_dir, models, seed=42):
         for group, items in pool.items():
             available = len(items)
             for number, start, first in rng.sample(items, min(PER_GROUP, available)):
-                q = legacy_embed(model, first)
+                q = embed_vector(model, first)
                 order = sorted(vectors, key=lambda n: distance(q, vectors[n]))
                 rank = order.index(number) + 1
                 detail.append({"model": model, "group": group, "page": number, "start_word": start, "rank": rank, "hit_top_k": rank <= TOP_K})

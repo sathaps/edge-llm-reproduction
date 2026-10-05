@@ -111,3 +111,12 @@ def test_procedure_section_longer_than_the_limit_is_cut_at_a_step(dll, pdf_path,
     assert len(chunks) > 3
     assert all(len(c["text"]) <= 250 for c in chunks)
     assert any(c["text"].startswith("Step ") for c in chunks)
+
+
+def test_embedding_endpoint_is_selectable(dll, pdf_path, url, stub, tmp_path):
+    run_b(dll, pdf_path, url, tmp_path, "--retrieval-only")
+    assert any(p == "/api/embed" for p, _ in stub.requests) and not any(p == "/api/embeddings" for p, _ in stub.requests)
+    stub.requests.clear()
+    (tmp_path / "legacy").mkdir()
+    run_b(dll, pdf_path, url, tmp_path / "legacy", "--retrieval-only", "--set", "embedding_endpoint=legacy")
+    assert any(p == "/api/embeddings" for p, _ in stub.requests) and not any(p == "/api/embed" for p, _ in stub.requests)

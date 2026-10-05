@@ -31,6 +31,7 @@
   },
   "b": {
     "embedding_model": "all-minilm",
+    "embedding_endpoint": "embed",
     "chunking": {
       "kind": "page"
     },

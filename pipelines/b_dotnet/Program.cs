@@ -23,6 +23,7 @@ var baseUrl = opt.Ollama.TrimEnd('/');
 using var http = new HttpClient { BaseAddress = new Uri(baseUrl + "/"), Timeout = TimeSpan.FromHours(1) };
 using var provider = new OllamaProvider(baseUrl + "/api");
 var embedder = new OllamaEmbeddingModel(provider, cfg.Str("embedding_model"));
+var embedEndpoint = cfg["embedding_endpoint"]?.GetValue<string>() ?? "embed";
 
 var docs = await new PdfPigPdfLoader().LoadAsync(DataSource.FromPath(opt.Pdf), new DocumentLoaderSettings { ShouldCollectMetadata = true });
 var pageTexts = docs.Select(d => d.PageContent).ToList();
@@ -40,10 +41,10 @@ var clock = Stopwatch.StartNew();
 for (var i = 0; i < chunks.Count; i += 16)
 {
     var batch = chunks.Skip(i).Take(16).ToList();
-    var emb = await embedder.CreateEmbeddingsAsync(EmbeddingRequest.ToEmbeddingRequest(batch.Select(c => c.Text).ToArray()));
+    var emb = await Embed(batch.Select(c => c.Text).ToArray());
     await collection.AddAsync(batch.Select((c, j) => new Vector
     {
-        Id = c.Id, Text = c.Text, Embedding = emb.Values[j],
+        Id = c.Id, Text = c.Text, Embedding = emb[j],
         Metadata = new Dictionary<string, object> { ["chunk_id"] = c.Id },
     }).ToList());
 }
@@ -67,7 +68,7 @@ foreach (var q in questions)
     if (rewriting is not null && !opt.RetrievalOnly && turn >= rewriting["from_turn"]!.GetValue<int>())
         query = await Rewrite(chat!, cfg, q.Text, history);
 
-    var qv = (await embedder.CreateEmbeddingsAsync(EmbeddingRequest.ToEmbeddingRequest(query))).Values[0];
+    var qv = (await Embed(new[] { query }))[0];
     // The store ignores VectorSearchSettings.ScoreThreshold, so a threshold is applied here on the distance.
     var found = await collection.SearchAsync(VectorSearchRequest.ToVectorSearchRequest(qv),
         new VectorSearchSettings { NumberOfResults = topK });
@@ -145,6 +146,18 @@ static async Task<string> Rewrite(OllamaChatModel chat, JsonNode cfg, string que
     plain["generation"] = new JsonObject { ["max_tokens"] = 200, ["stop"] = null };
     var role = rw["role"]?.GetValue<string>() == "system" ? MessageRole.System : MessageRole.Human;
     return (await Generate(chat, plain, new[] { new Message(prompt, role) })).LastMessageContent?.Trim() ?? question;
+}
+
+// "legacy" is the package's own call to /api/embeddings, which Ollama 0.35.1 refuses with HTTP 500 for input longer than
+// the window. "embed" posts to /api/embed, which cuts the input to the window as older Ollama versions did.
+async Task<float[][]> Embed(string[] texts)
+{
+    if (embedEndpoint == "legacy")
+        return (await embedder.CreateEmbeddingsAsync(EmbeddingRequest.ToEmbeddingRequest(texts))).Values.ToArray();
+    var reply = await http.PostAsJsonAsync("api/embed", new { model = cfg.Str("embedding_model"), input = texts });
+    reply.EnsureSuccessStatusCode();
+    var body = (await reply.Content.ReadFromJsonAsync<JsonObject>())!;
+    return body["embeddings"]!.AsArray().Select(v => v!.AsArray().Select(x => x!.GetValue<float>()).ToArray()).ToArray();
 }
 
 static async Task<int?> ContextLength(HttpClient http, string model)
