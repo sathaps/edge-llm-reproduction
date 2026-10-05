@@ -25,10 +25,12 @@ def call(path, body):
 
 
 def window(model):
+    """The window /api/ps reports. Older Ollama releases do not report it. WINDOW_ASSUMED then names the default window of that release."""
     ps = json.load(urllib.request.urlopen(BASE + "/api/ps", timeout=60))
     for m in ps.get("models", []):
-        if m["name"].split(":")[0] == model.split(":")[0]:
-            return m.get("context_length")
+        if m["name"].split(":")[0] == model.split(":")[0] and m.get("context_length"):
+            return m["context_length"]
+    return int(os.environ["WINDOW_ASSUMED"]) if os.environ.get("WINDOW_ASSUMED") else None
 
 
 def text_rich_pages(pages_dir):

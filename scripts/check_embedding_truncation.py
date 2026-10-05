@@ -29,11 +29,16 @@ def cosine(a, b):
     return dot / (math.sqrt(sum(x * x for x in a)) * math.sqrt(sum(y * y for y in b)))
 
 
+ASSUMED = {"all-minilm": 256, "mxbai-embed-large": 512}
+
+
 def window(model):
+    """The window /api/ps reports. Older Ollama releases do not report it. ASSUME_WINDOWS=1 then uses the trained lengths."""
     ps = json.load(urllib.request.urlopen(BASE + "/api/ps", timeout=60))
     for m in ps.get("models", []):
-        if m["name"] == model:
-            return m.get("context_length")
+        if m["name"] == model and m.get("context_length"):
+            return m["context_length"]
+    return ASSUMED.get(model.split(":")[0]) if os.environ.get("ASSUME_WINDOWS") else None
 
 
 def longest_fitting_prefix(model, words, start=0):
@@ -50,9 +55,15 @@ def longest_fitting_prefix(model, words, start=0):
 
 
 def special_tokens(model):
-    one = embed(model, "boiler")[1]
-    two = embed(model, "boiler boiler")[1]
+    one, two = embed(model, "boiler")[1], embed(model, "boiler boiler")[1]
+    if one is None or two is None:  # releases before 0.4 do not report prompt_eval_count on /api/embed
+        return None
     return one - (two - one)
+
+
+def med(values):
+    values = list(values)
+    return statistics.median(values) if values else None
 
 
 def check_page(model, text, specials):
@@ -65,7 +76,7 @@ def check_page(model, text, specials):
         piece = longest_fitting_prefix(model, words, pos)
         if tail_vec is None:
             tail_vec = piece[1]
-        offered += piece[2] - specials
+        offered = None if offered is None or piece[2] is None else offered + piece[2] - specials
         pos += piece[0]
     return {"chars": len(text), "tokens_offered": offered, "tokens_used": used, "prefix_words": n_prefix, "words": len(words),
             "cos_full_vs_prefix": cosine(full, prefix_vec), "cos_full_vs_tail": cosine(full, tail_vec) if tail_vec else None}
@@ -88,11 +99,12 @@ def main(pages_dir, out_dir, models):
         rows = [check_page(model, p, specials) for p in pages]
         for i, r in enumerate(rows):
             detail.append({"model": model, "page_sample": i + 1, "window": win, **r})
-        med = statistics.median
         summary.append({"model": model, "window_in_effect": win, "special_tokens_per_input": specials, "pages_tested": len(rows),
-                        "median_chars": med(r["chars"] for r in rows), "median_tokens_offered": med(r["tokens_offered"] for r in rows),
-                        "median_tokens_used": med(r["tokens_used"] for r in rows),
-                        "pages_cut": sum(1 for r in rows if r["tokens_offered"] > win),
+                        "median_chars": med(r["chars"] for r in rows),
+                        "median_tokens_offered": med(r["tokens_offered"] for r in rows if r["tokens_offered"] is not None),
+                        "median_tokens_used": med(r["tokens_used"] for r in rows if r["tokens_used"] is not None),
+                        "pages_cut": sum(1 for r in rows if r["tokens_offered"] is not None and win and r["tokens_offered"] > win),
+                        "pages_whose_prefix_is_shorter_than_the_page": sum(1 for r in rows if r["prefix_words"] < r["words"]),
                         "median_cos_full_vs_prefix": round(med(r["cos_full_vs_prefix"] for r in rows), 6),
                         "min_cos_full_vs_prefix": round(min(r["cos_full_vs_prefix"] for r in rows), 6),
                         "median_cos_full_vs_tail": round(med(r["cos_full_vs_tail"] for r in rows if r["cos_full_vs_tail"] is not None), 6)})

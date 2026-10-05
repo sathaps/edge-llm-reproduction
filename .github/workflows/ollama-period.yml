@@ -1,0 +1,64 @@
+name: ollama-period
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/ollama-period.yml
+      - scripts/install_ollama_period.sh
+
+# The original builds date from about October 2024, when Ollama was at 0.3.x. This workflow repeats three checks on the
+# latest 0.3.x release that installs and answers: the legacy /api/embeddings call with long input, the embedding
+# truncation check and the prompt truncation check for llama3.
+jobs:
+  embeddings:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the period release and pull the embedding models
+        run: bash scripts/install_ollama_period.sh all-minilm:latest mxbai-embed-large:latest
+      - name: Fetch the manual
+        run: |
+          which pdftotext || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
+          read -r name url < <(grep -v '^#' manuals/chosen.txt | head -n 1)
+          python3 scripts/manual_probe.py out/manual "$url" > out/manual_probe.log
+      - name: Legacy endpoint with long input
+        run: python3 scripts/check_legacy_embed.py out/period/legacy_embed.csv
+      - name: Embedding truncation, full page against page cut to the window
+        env:
+          ASSUME_WINDOWS: "1"
+        run: python3 scripts/check_embedding_truncation.py out/manual/pages out/period
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: period-embeddings
+          path: |
+            out/env.txt
+            out/period/
+            out/ollama_install.log
+
+  chat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the period release and pull llama3
+        run: bash scripts/install_ollama_period.sh llama3:latest
+      - name: Fetch the manual
+        run: |
+          which pdftotext || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
+          read -r name url < <(grep -v '^#' manuals/chosen.txt | head -n 1)
+          python3 scripts/manual_probe.py out/manual "$url" > out/manual_probe.log
+      - name: Prompt truncation for llama3
+        env:
+          WINDOW_ASSUMED: "2048"
+        run: python3 scripts/check_prompt_truncation.py out/manual/pages out/period llama3:latest
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: period-chat
+          path: |
+            out/env.txt
+            out/period/
+            out/ollama_install.log
