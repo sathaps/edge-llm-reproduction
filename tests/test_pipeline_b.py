@@ -118,5 +118,5 @@ def test_embedding_endpoint_is_selectable(dll, pdf_path, url, stub, tmp_path):
     assert any(p == "/api/embed" for p, _ in stub.requests) and not any(p == "/api/embeddings" for p, _ in stub.requests)
     stub.requests.clear()
     (tmp_path / "legacy").mkdir()
-    run_b(dll, pdf_path, url, tmp_path / "legacy", "--retrieval-only", "--set", "embedding_endpoint=legacy")
+    run_b(dll, pdf_path, url, tmp_path / "legacy", "--retrieval-only", "--set", "embedding_endpoint=\"legacy\"")
     assert any(p == "/api/embeddings" for p, _ in stub.requests) and not any(p == "/api/embed" for p, _ in stub.requests)
