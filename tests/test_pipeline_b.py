@@ -120,3 +120,25 @@ def test_embedding_endpoint_is_selectable(dll, pdf_path, url, stub, tmp_path):
     (tmp_path / "legacy").mkdir()
     run_b(dll, pdf_path, url, tmp_path / "legacy", "--retrieval-only", "--set", "embedding_endpoint=\"legacy\"")
     assert any(p == "/api/embeddings" for p, _ in stub.requests) and not any(p == "/api/embed" for p, _ in stub.requests)
+
+
+def test_bracket_modes_send_no_context_or_the_reference_pages(dll, pdf_path, url, stub, tmp_path):
+    q = tmp_path / "q.csv"
+    q.write_text("id,question,source_pages\nq1,How do I start the unit?,1\nq2,Is there a price?,\n")
+
+    def run(mode, out):
+        out.mkdir()
+        r = subprocess.run(["dotnet", str(dll), "--pdf", str(pdf_path), "--ollama", url, "--questions", str(q), "--out", str(out / "o"),
+                            "--config", str(ROOT / "config/pipelines.json"), "--set", f'retrieval.mode="{mode}"'], capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode == 0, r.stderr[-1500:]
+        return rows(out / "o" / "retrieval.jsonl")
+    stub.requests.clear()
+    none = run("none", tmp_path / "none")
+    assert all(r["retrieved"] == [] for r in none)
+    chat = [b for p, b in stub.requests if p == "/api/chat"]
+    assert "Question: How do I start the unit?" in chat[0]["messages"][0]["content"] and "Press START" not in chat[0]["messages"][0]["content"]
+    stub.requests.clear()
+    oracle = run("oracle", tmp_path / "oracle")
+    assert [h["pages"] for h in oracle[0]["retrieved"]] == [[1]] and oracle[1]["retrieved"] == []
+    chat = [b for p, b in stub.requests if p == "/api/chat"]
+    assert "Press START and hold for five seconds" in chat[0]["messages"][0]["content"]

@@ -58,6 +58,8 @@ var ansRows = new List<object>();
 var promptRows = new List<object>();
 var topK = cfg["retrieval"]!["top_k"]!.GetValue<int>();
 var maxDistance = cfg["retrieval"]!["max_distance"]?.GetValue<float>();
+// "retrieve" is the pipeline. "none" sends an empty context. "oracle" sends the full text of the question's source pages.
+var mode = cfg["retrieval"]!["mode"]?.GetValue<string>() ?? "retrieve";
 var rewriting = cfg["query_rewriting"];
 
 foreach (var q in questions)
@@ -74,14 +76,19 @@ foreach (var q in questions)
         new VectorSearchSettings { NumberOfResults = topK });
     var hits = found.Items.Where(v => maxDistance is null || v.Distance <= maxDistance)
         .Select(v => (chunk: chunks.First(c => c.Id == (string)v.Metadata["chunk_id"]), v)).ToList();
+    var given = mode == "oracle" ? Pages.Parse(q.SourcePages).Where(n => n >= 1 && n <= pageTexts.Count).ToList() : new List<int>();
+    if (mode != "retrieve") hits.Clear();
     retRows.Add(new
     {
-        question_id = q.Id, query_used = query,
-        retrieved = hits.Select(h => new { chunk_id = h.chunk.Id, pages = h.chunk.Pages, score = (float?)null, distance = h.v.Distance }),
+        question_id = q.Id, query_used = query, mode,
+        retrieved = mode == "retrieve"
+            ? hits.Select(h => new { chunk_id = h.chunk.Id, pages = h.chunk.Pages, score = (float?)null, distance = (float?)h.v.Distance }).ToList()
+            : given.Select(n => new { chunk_id = $"page-{n}", pages = new List<int> { n }, score = (float?)null, distance = (float?)null }).ToList(),
     });
     if (opt.RetrievalOnly) continue;
 
-    var context = string.Join("\n\n", hits.Select(h => h.chunk.Text));
+    var context = mode == "oracle" ? string.Join("\n\n", given.Select(n => pageTexts[n - 1]))
+        : string.Join("\n\n", hits.Select(h => h.chunk.Text));
     var template = cfg["grounding"]!["template"]!.GetValue<string>();
     var shortest = cfg["generation"]!["shortest_answer"]!.GetValue<bool>() ? cfg["grounding"]!["shortest_line"]!.GetValue<string>() : "";
     var prompt = template.Replace("{shortest_line}", shortest).Replace("{context}", context).Replace("{question}", q.Text);
@@ -194,7 +201,7 @@ static string? GitCommit()
 
 record Chunk(string Id, List<int> Pages, string Text);
 
-record Question(string Id, string Text);
+record Question(string Id, string Text, string SourcePages = "");
 
 static class Questions
 {
@@ -206,8 +213,26 @@ static class Questions
         var head = rows[0];
         var iId = head.IndexOf("id");
         var iQ = head.IndexOf("question");
-        var list = rows.Skip(1).Where(r => r.Count > Math.Max(iId, iQ)).Select(r => new Question(r[iId], r[iQ])).ToList();
+        var iP = head.IndexOf("source_pages");
+        var list = rows.Skip(1).Where(r => r.Count > Math.Max(iId, iQ))
+            .Select(r => new Question(r[iId], r[iQ], iP >= 0 && iP < r.Count ? r[iP] : "")).ToList();
         return o.Limit is int n ? list.Take(n).ToList() : list;
+    }
+}
+
+static class Pages
+{
+    public static List<int> Parse(string text)
+    {
+        var pages = new SortedSet<int>();
+        foreach (var part in text.Replace(',', ';').Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var bits = part.Split('-');
+            var lo = int.Parse(bits[0]);
+            var hi = bits.Length > 1 ? int.Parse(bits[1]) : lo;
+            for (var n = lo; n <= hi; n++) pages.Add(n);
+        }
+        return pages.ToList();
     }
 }
 

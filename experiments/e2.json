@@ -74,6 +74,22 @@
       ]
     },
     {
+      "id": "E2h-no-retrieval",
+      "impl": "b",
+      "model": "$E2_MODEL",
+      "set": [
+        "retrieval.mode=\"none\""
+      ]
+    },
+    {
+      "id": "E2i-oracle",
+      "impl": "b",
+      "model": "$E2_MODEL",
+      "set": [
+        "retrieval.mode=\"oracle\""
+      ]
+    },
+    {
       "id": "E2f-rewriting",
       "impl": "b",
       "model": "$E2_MODEL",

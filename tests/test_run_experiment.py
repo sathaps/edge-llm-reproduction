@@ -55,7 +55,7 @@ def test_experiment_files_are_well_formed():
     assert {c["model"] for c in e1["cells"]} == {"llama3:latest", "mistral:latest", "tinyllama:latest"}
     e2 = json.load(open(root / "e2.json"))
     assert {c["impl"] for c in e2["cells"]} == {"b"}
-    assert [c["id"] for c in e2["cells"]][:1] == ["base"] and len(e2["cells"]) == 11
+    assert [c["id"] for c in e2["cells"]][:1] == ["base"] and len(e2["cells"]) == 13
 
 
 def test_cell_filter_runs_only_the_named_cells(pdf_path, url, stub, tmp_path):
