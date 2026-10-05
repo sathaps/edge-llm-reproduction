@@ -82,6 +82,12 @@ def test_end_to_end_files_and_grounding_text(pdf_path, url, stub, tmp_path):
     assert run["chunks"] == len([1 for _ in open(out / "chunks.jsonl")]) and run["settings"]["embedding_model"] == "mxbai-embed-large"
 
 
+def test_num_ctx_is_sent_only_when_set(pdf_path, url, stub, tmp_path):
+    run_a(pdf_path, url, tmp_path, "--set", "generation.num_ctx=8192")
+    chat = [b for p, b in stub.requests if p == "/api/chat"]
+    assert chat[0]["options"]["num_ctx"] == 8192
+
+
 def test_no_rewrite_in_fresh_conversations(pdf_path, url, stub, tmp_path):
     run_a(pdf_path, url, tmp_path)
     assert len([b for p, b in stub.requests if p == "/api/chat"]) == 2

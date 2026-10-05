@@ -66,6 +66,14 @@
       "model": "$E2_MODEL_LARGE"
     },
     {
+      "id": "E2g-window-raised",
+      "impl": "b",
+      "model": "$E2_MODEL",
+      "set": [
+        "generation.num_ctx=8192"
+      ]
+    },
+    {
       "id": "E2f-rewriting",
       "impl": "b",
       "model": "$E2_MODEL",

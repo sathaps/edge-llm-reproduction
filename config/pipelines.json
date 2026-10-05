@@ -24,6 +24,7 @@
     },
     "generation": {
       "max_tokens": 2000,
+      "num_ctx": null,
       "stop": null,
       "shortest_answer": false
     }
@@ -44,6 +45,7 @@
     "query_rewriting": null,
     "generation": {
       "max_tokens": null,
+      "num_ctx": null,
       "stop": [
         "\n"
       ],

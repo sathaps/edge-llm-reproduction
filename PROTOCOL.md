@@ -89,6 +89,7 @@ A manufacturer manual is fetched in the job from its public URL and is never com
 | E2d | Relevance threshold: none versus a threshold that lets retrieval return nothing |
 | E2e | Model size: smaller versus larger model, same prompt |
 | E2f | Query rewriting: off versus on |
+| E2g | Context window raised to fit: `num_ctx` 8192 (the trained length of llama3) so that the eight-page prompts are not cut; the other cells keep the default window |
 
 E2a and E2e together test whether chunking matters more than model choice. E2b and E2e together separate prompt from model size in the applicability case.
 

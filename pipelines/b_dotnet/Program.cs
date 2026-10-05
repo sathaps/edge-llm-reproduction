@@ -122,6 +122,7 @@ static async Task<ChatResponse> Generate(OllamaChatModel chat, JsonNode cfg, IRe
         Temperature = cfg["temperature"]!.GetValue<float>(),
         Seed = cfg["seed"]!.GetValue<int>(),
         NumPredict = gen["max_tokens"]?.GetValue<int>(),
+        NumCtx = gen["num_ctx"]?.GetValue<int>(),
         StopSequences = gen["stop"]?.AsArray().Select(s => s!.GetValue<string>()).ToArray(),
         UseStreaming = false,
     };

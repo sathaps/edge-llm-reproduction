@@ -114,7 +114,7 @@ The six cells fit. They do not fit in one job, because B-llama3 alone needs 6.93
 
 Actions minutes: the Actions API reported 0 billable milliseconds for run 37375097339, which took 15 minutes 31 seconds on the runner. The repository is public. The runner time of E1 is about 939 minutes by the arithmetic above, spread over 18 jobs.
 
-E2 model: `llama3:latest`. Its tag resolves to the original id, which mistral's does not. Its default window of 4096 held B's five-page prompt on the AERCO text, while mistral's and tinyllama's counts suggest truncation. E2 has ten cells. With llama3 at B's measured time, 3 repeats of 40 questions take 69.3 hours of runner time (23.1 hours for one repeat), again as 30 jobs of about 2.3 hours. E2e uses the other two models for its small and large cells.
+E2 model: `llama3:latest`. Its tag resolves to the original id, which mistral's does not. Its default window of 4096 held B's five-page prompt on the AERCO text, while mistral's and tinyllama's counts suggest truncation. E2 has eleven cells, including E2g (context window raised to 8192). With llama3 at B's measured time, 3 repeats of 40 questions take 76.2 hours of runner time (25.4 hours for one repeat), again as 33 jobs of about 2.3 hours. E2e uses the other two models for its small and large cells.
 
 Larger runners: we measured one runner size only, so we cannot state a speed-up. Runner minutes are not the limit for a public repository. The limits are the six hours per job and the number of jobs that run at once, and splitting by cell and repeat addresses both. A larger runner would shorten each job only if generation and prompt processing scale with cores, which we have not measured.
 
@@ -134,6 +134,7 @@ Claim wording is taken from `PROTOCOL.md`. A claim that misstates the article is
 | Chunking may matter more than model choice | E2a compared with E2e | summary E2 tables |
 | Generation settings (line-break stop, shortest answer) change correctness or completeness | E2c | summary E2 tables |
 | Retrieval with no relevance threshold forces an answer from unrelated text | E2d, unanswerable category | summary E2 tables |
+| A prompt cut to half the window changes answers | E2g compared with the base cell; prompt truncation table | summary E2 tables |
 | Query rewriting changes retrieval from the second turn onward | E2f | summary E2 tables |
 | Declaring 1536 dimensions for 384-dimension embeddings does not break B | E1 B retrieval hit rate; measured embedding dimensions recorded by the `manual-models-budget` workflow | retrieval.csv |
 | Documentation placed in the prompt hits the default context window | E5 | `prompt_eval_count` and truncation flags |

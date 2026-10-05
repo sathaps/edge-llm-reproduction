@@ -47,6 +47,8 @@ class Ollama:
             options["num_predict"] = gen["max_tokens"]
         if gen.get("stop"):
             options["stop"] = gen["stop"]
+        if gen.get("num_ctx"):
+            options["num_ctx"] = gen["num_ctx"]
         return self.post("/api/chat", {"model": model, "messages": messages, "stream": False, "options": options})
 
     def context_length(self, model):
