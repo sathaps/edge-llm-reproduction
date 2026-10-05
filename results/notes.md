@@ -151,3 +151,28 @@ In full runs of the Python test suite, one .NET test fails now and then with `Sy
 The primary manual (Cummins fire pump drive engine CFP11E, Doc. A042J562 Rev. 1, SHA-256 `a6a8ea25b6ea6e3b…`, 155 pages) has fonts without a Unicode map on some pages. `pdftotext`, `pypdf` and PdfPig all return glyph codes instead of letters on these pages. The codes are shifted by a constant, and a page counts as garbled when it reads as English only after the shift is undone. That gives 9 pages: 4, 5, 96 to 101 (the first troubleshooting charts) and 115. Pages 112 and 86 have a few garbled figure labels but their text is readable. An earlier version of this note counted 26 pages. It counted pages with few common English words, which included readable tables, fault code charts (pages 102 to 110), wiring text (151 to 155) and drawing legends. That count was wrong and is withdrawn. Pages 117 to 149 hold drawings without text.
 
 Decision of the maintainer: the baseline does not repair the text, because the original builds did nothing special at extraction. We record the effect. E1 stores, for every cell and repeat, the number of chunks and vectors, the number of garbled chunks and how often a garbled chunk appears in the retrieved set (`garbled.json`). No question depends on a garbled page. Extraction repaired by the constant-shift decode is a low-priority E2 factor.
+
+
+## Check 3: Ollama 0.3.14 (the period of the original builds) against 0.35.1
+
+The original builds date from about October 2024, when Ollama was at 0.3.x. Run 37387498181 (`ollama-period`, commit 93573ef) installed 0.3.14 on a runner and repeated the legacy-endpoint probe and the embedding truncation check. The original machine now runs a current release, so the original version cannot be recovered. This is the nearest release of the period.
+
+Legacy `/api/embeddings` with input longer than the window (inputs of 50 to 2000 short words):
+
+| Ollama | Input of 150 words or more for all-minilm (window 256), 200 words or more for mxbai-embed-large (window 512) |
+|---|---|
+| 0.3.14 | HTTP 200 for every length up to 2000 words. The input is cut to the window without a message |
+| 0.35.1 | HTTP 500, "the input length exceeds the context length" (local probe; the runner probe of `check_legacy_embed.py` is part of run 37386511987) |
+
+So B's original behaviour with page-level chunks was a silent cut at the embedding window. The 0.35.1 behaviour is an error, and B runs through `/api/embed` here (`embedding_endpoint`, see `config/README.md`), which cuts silently in both releases. `/api/embed` returned the same token counts on both releases: 256 for all-minilm and 512 for mxbai-embed-large from 200 words up.
+
+Embedding truncation on 20 sampled pages (full page against the longest prefix that fits the window):
+
+| Model | Release | Window | Pages cut | Median tokens offered, used | Cosine full vs prefix, median / min | Cosine full vs tail |
+|---|---|---|---|---|---|---|
+| all-minilm | 0.35.1 (run 37380524685) | 256 | 20 of 20 | 617, 256 | 0.999866 / 0.988759 | 0.6166 |
+| all-minilm | 0.3.14 (run 37387498181) | 256 (assumed) | 20 of 20 | 615, 256 | 0.995022 / 0.785729 | 0.531946 |
+| mxbai-embed-large | 0.35.1 | 512 | 13 of 20 | n/a, 512 | 1.0 / 0.93246 | 0.7885 |
+| mxbai-embed-large | 0.3.14 | 512 (assumed) | 13 of 20 | 615, 512 | 1.0 / 0.77694 | 0.797955 |
+
+The cut counts are the same. The vectors differ slightly between releases: with 0.3.14 the full page and its prefix are less alike (median 0.995 against 0.9999 for all-minilm, minimum 0.79 against 0.99). The pages sampled in the two runs come from the same manual with the same rule, but the check does not control for the difference in tokenization or normalization between the releases, so we report the difference and do not explain it.

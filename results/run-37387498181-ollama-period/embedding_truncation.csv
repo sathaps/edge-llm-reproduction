@@ -1,0 +1,3 @@
+model,window_assumed,special_tokens_per_input,pages_tested,median_chars,median_tokens_offered,median_tokens_used,pages_cut,median_cos_full_vs_prefix,min_cos_full_vs_prefix,median_cos_full_vs_tail
+all-minilm:latest,256,0,20,2390.5,615.0,256.0,20,0.995022,0.785729,0.531946
+mxbai-embed-large:latest,512,0,20,2390.5,615.0,512.0,13,1.0,0.77694,0.797955
