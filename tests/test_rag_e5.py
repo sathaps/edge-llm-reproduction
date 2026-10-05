@@ -22,6 +22,6 @@ def test_manual_text_goes_in_the_system_prompt_with_default_options(pdf_path, ur
     assert system.startswith("Answer the user's questions") and "Press START and hold for five seconds" in system and "Disconnect the battery." in system
     assert chat[0]["options"] == {"temperature": 0, "seed": 42}
     a = [json.loads(l) for l in open(tmp_path / "out" / "answers.jsonl")][0]
-    assert a["prompt_eval_count"] == 4000 and a["context_length"] == 4096 and a["prompt_near_context_limit"] is True
+    assert a["prompt_eval_count"] == 4000 and a["context_length"] == 4096
     run = json.load(open(tmp_path / "out" / "run.json"))
     assert run["experiment"] == "e5" and run["manual_chars"] > 100

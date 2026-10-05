@@ -13,6 +13,7 @@ Output files of one run, written by both pipelines to the run directory:
 | `run.json` | effective settings, model and embedding digests, Ollama version, input file checksum, chunk count, timing |
 | `chunks.jsonl` | one row per chunk: `chunk_id`, `pages`, `text` |
 | `retrieval.jsonl` | one row per question: retrieved `chunk_id`, `pages`, in rank order, with `score` (cosine similarity, Implementation A) or `distance` (Euclidean, Implementation B) |
-| `answers.jsonl` | one row per question: raw answer, token counts, durations, context length in effect, and truncation flags |
+| `answers.jsonl` | one row per question: raw answer, token counts, durations, context length in effect and, after `scripts/count_offered.py` has run, `tokens_offered`, `tokens_dropped` and `prompt_truncated` |
+| `prompts.jsonl` | working file with the prompts sent, read by `scripts/count_offered.py` and then removed. It is not published |
 
 Chunking kinds for Implementation B: `page` (default), `sentence_groups` (`max_chars`) and `procedure` (`heading_pattern`, `step_pattern`, `max_chars`). `procedure` starts a chunk at every match of `heading_pattern` and cuts a section longer than `max_chars` at the last `step_pattern` match that fits. The patterns depend on the manual and are set per experiment, for example `--set 'chunking={"kind":"procedure","heading_pattern":"Section \\d+\\.","step_pattern":"Step \\d+","max_chars":6000}'`.

@@ -54,6 +54,7 @@ var questions = Questions.Read(opt);
 var history = new List<Message>();
 var retRows = new List<object>();
 var ansRows = new List<object>();
+var promptRows = new List<object>();
 var topK = cfg["retrieval"]!["top_k"]!.GetValue<int>();
 var maxDistance = cfg["retrieval"]!["max_distance"]?.GetValue<float>();
 var rewriting = cfg["query_rewriting"];
@@ -90,18 +91,21 @@ foreach (var q in questions)
     history.Add(Message.Human(prompt));
     history.Add(Message.Ai(answer));
     var ctx = await ContextLength(http, opt.Model);
+    promptRows.Add(new { question_id = q.Id, messages = new[] { new { role = "user", content = prompt } } });
     ansRows.Add(new
     {
         question_id = q.Id, answer, wall_s = wall.Elapsed.TotalSeconds,
         prompt_eval_count = response.Usage.InputTokens, eval_count = response.Usage.OutputTokens,
         done_reason = response.FinishReason?.ToString(), context_length = ctx,
-        prompt_near_context_limit = ctx is not null && response.Usage.InputTokens >= 0.95 * ctx,
     });
 }
 
 File.WriteAllLines(Path.Combine(opt.Out, "retrieval.jsonl"), retRows.Select(r => JsonSerializer.Serialize(r)));
 if (!opt.RetrievalOnly)
+{
     File.WriteAllLines(Path.Combine(opt.Out, "answers.jsonl"), ansRows.Select(r => JsonSerializer.Serialize(r)));
+    File.WriteAllLines(Path.Combine(opt.Out, "prompts.jsonl"), promptRows.Select(r => JsonSerializer.Serialize(r)));
+}
 File.WriteAllText(Path.Combine(opt.Out, "run.json"), JsonSerializer.Serialize(new
 {
     implementation = "b", settings = JsonNode.Parse(cfg.ToJsonString()), model = opt.Model,

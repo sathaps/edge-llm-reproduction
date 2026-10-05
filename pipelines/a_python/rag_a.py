@@ -135,12 +135,6 @@ def rewrite_query(ollama, model, cfg, question, history):
     return reply["message"]["content"].strip()
 
 
-def truncation_flags(prompt_tokens, ctx):
-    """The default context window truncates silently, so the raw counts are kept and a coarse flag is added."""
-    near = bool(ctx and prompt_tokens is not None and prompt_tokens >= 0.95 * ctx)
-    return {"prompt_near_context_limit": near}
-
-
 def run(args):
     cfg = load_config(args.config, "a", args.set)
     ollama = Ollama(args.ollama)
@@ -158,7 +152,7 @@ def run(args):
     index_bytes = os.path.getsize(f"{args.out}/chunks.jsonl")  # the embeddings stay in memory, as in the original
 
     questions = read_questions(args)
-    history, ret_rows, ans_rows = [], [], []
+    history, ret_rows, ans_rows, prompt_rows = [], [], [], []
     for q in questions:
         if args.conversation == "fresh":
             history = []
@@ -179,6 +173,7 @@ def run(args):
         messages = [{"role": "system", "content": cfg["grounding"]["system"]}] + history
         t1 = time.time()
         reply = ollama.chat(args.model, messages, cfg)
+        prompt_rows.append({"question_id": q["id"], "messages": messages})
         wall = time.time() - t1
         answer = reply["message"]["content"]
         history.append({"role": "assistant", "content": answer})
@@ -186,12 +181,12 @@ def run(args):
         ans_rows.append({"question_id": q["id"], "answer": answer, "wall_s": wall,
                          "prompt_eval_count": reply.get("prompt_eval_count"), "prompt_eval_ns": reply.get("prompt_eval_duration"),
                          "eval_count": reply.get("eval_count"), "eval_ns": reply.get("eval_duration"),
-                         "done_reason": reply.get("done_reason"), "context_length": ctx,
-                         **truncation_flags(reply.get("prompt_eval_count"), ctx)})
+                         "done_reason": reply.get("done_reason"), "context_length": ctx})
 
     write_jsonl(f"{args.out}/retrieval.jsonl", ret_rows)
     if not args.retrieval_only:
         write_jsonl(f"{args.out}/answers.jsonl", ans_rows)
+        write_jsonl(f"{args.out}/prompts.jsonl", prompt_rows)
     json.dump({"implementation": "a", "settings": cfg, "model": args.model,
                "model_digest": None if args.retrieval_only else ollama.digest(args.model),
                "embedding_digest": ollama.digest(cfg["embedding_model"]),

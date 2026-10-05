@@ -52,12 +52,6 @@ def test_override_changes_one_key():
     assert cfg["chunking"]["max_chars"] == 1000
 
 
-def test_truncation_flag():
-    assert rag_a.truncation_flags(3900, 4096)["prompt_near_context_limit"]
-    assert not rag_a.truncation_flags(500, 4096)["prompt_near_context_limit"]
-    assert not rag_a.truncation_flags(500, None)["prompt_near_context_limit"]
-
-
 def run_a(pdf_path, url, tmp_path, *extra):
     q = tmp_path / "q.csv"
     q.write_text("id,question\nq1,How do I start the unit?\nq2,Does model Y support the load test?\n")
@@ -69,7 +63,7 @@ def run_a(pdf_path, url, tmp_path, *extra):
 
 def test_end_to_end_files_and_grounding_text(pdf_path, url, stub, tmp_path):
     out = run_a(pdf_path, url, tmp_path)
-    assert {p.name for p in out.iterdir()} == {"run.json", "chunks.jsonl", "retrieval.jsonl", "answers.jsonl"}
+    assert {p.name for p in out.iterdir()} == {"run.json", "chunks.jsonl", "retrieval.jsonl", "answers.jsonl", "prompts.jsonl"}
     ret = [json.loads(l) for l in open(out / "retrieval.jsonl")]
     assert [r["question_id"] for r in ret] == ["q1", "q2"]
     assert all(len(r["retrieved"]) <= 3 for r in ret)

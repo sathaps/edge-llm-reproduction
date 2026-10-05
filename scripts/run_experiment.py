@@ -9,6 +9,8 @@ Output: <out>/env.txt, <out>/<cell>/rep-N/ (the pipeline's files) and <out>/reso
 import argparse, csv, json, os, subprocess, sys, time
 from pathlib import Path
 
+import count_offered
+
 ROOT = Path(__file__).resolve().parent.parent
 OLLAMA_COMM = ("ollama", "llama-server", "ollama_llama")
 
@@ -138,6 +140,8 @@ def main(argv=None):
             rep_dir.mkdir(parents=True, exist_ok=True)
             code, wall, pipe_kb, ollama_kb = run_sampled(pipeline_command(cell, args, rep_dir, b_dll), cwd=ROOT,
                                                          stdout=open(rep_dir / "stdout.txt", "w"), stderr=subprocess.STDOUT)
+            if (rep_dir / "prompts.jsonl").exists():
+                count_offered.annotate(rep_dir, args.ollama)
             run = json.load(open(rep_dir / "run.json")) if (rep_dir / "run.json").exists() else {}
             answers = [json.loads(l) for l in open(rep_dir / "answers.jsonl")] if (rep_dir / "answers.jsonl").exists() else []
             rows.append({"experiment": exp["id"], "cell": cell["id"], "rep": rep, "exit_code": code, "wall_s": round(wall, 3),

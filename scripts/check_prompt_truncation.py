@@ -12,18 +12,20 @@ read from /api/ps after each pass. Prompts are built the way the pipelines build
 """
 import csv, functools, glob, json, os, re, sys, time, urllib.request
 
+BASE = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+
 PAGES = [1, 2, 3, 5, 8]
 RAISED = 32768
 QUESTION = "What must be checked before the boiler is started for the first time?"
 
 
 def call(path, body):
-    req = urllib.request.Request("http://localhost:11434" + path, json.dumps(body).encode(), {"Content-Type": "application/json"})
+    req = urllib.request.Request(BASE + path, json.dumps(body).encode(), {"Content-Type": "application/json"})
     return json.load(urllib.request.urlopen(req, timeout=7200))
 
 
 def window(model):
-    ps = json.load(urllib.request.urlopen("http://localhost:11434/api/ps", timeout=60))
+    ps = json.load(urllib.request.urlopen(BASE + "/api/ps", timeout=60))
     for m in ps.get("models", []):
         if m["name"].split(":")[0] == model.split(":")[0]:
             return m.get("context_length")

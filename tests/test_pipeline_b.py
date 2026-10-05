@@ -89,7 +89,7 @@ def test_answers_carry_token_counts_and_context(dll, pdf_path, url, stub, tmp_pa
     stub.prompt_tokens = 4000
     out = run_b(dll, pdf_path, url, tmp_path)
     a = rows(out / "answers.jsonl")[0]
-    assert a["prompt_eval_count"] == 4000 and a["context_length"] == 4096 and a["prompt_near_context_limit"] is True
+    assert a["prompt_eval_count"] == 4000 and a["context_length"] == 4096
 
 
 PROCEDURE = {"kind": "procedure", "heading_pattern": r"Section \d+\.", "step_pattern": r"Step \d+", "max_chars": 6000}

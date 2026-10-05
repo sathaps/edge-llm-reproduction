@@ -1,4 +1,4 @@
-import csv, hashlib, importlib, os, sys
+import csv, hashlib, importlib, json, os, sys
 from pathlib import Path
 
 import pytest
@@ -101,3 +101,28 @@ def test_tag_search_marks_the_matching_tag(tmp_path, url, monkeypatch, capsys):
     assert [r["tag"] for r in rows if r["matches_wanted"] == "True"] == ["v0.2"]
     out = capsys.readouterr().out
     assert "self-check latest" in out and "ok" in out and "tags with id" in out
+
+
+def write_run(d, rows, model="llama3:latest"):
+    d.mkdir()
+    (d / "run.json").write_text(json.dumps({"model": model}))
+    (d / "answers.jsonl").write_text("".join(json.dumps(r["answer"]) + "\n" for r in rows))
+    (d / "prompts.jsonl").write_text("".join(json.dumps(r["prompt"]) + "\n" for r in rows))
+
+
+def test_count_offered_marks_only_cut_prompts(tmp_path, stub, url, monkeypatch):
+    import count_offered
+    stub.emulate_context = True
+    long_text = " ".join(f"w{i}" for i in range(6000))
+    rows = []
+    for qid, text, used in [("short", "w " * 50, 53), ("long", long_text, 4096), ("fits", " ".join(f"w{i}" for i in range(3000)), 3003)]:
+        rows.append({"answer": {"question_id": qid, "prompt_eval_count": used, "context_length": 4096},
+                     "prompt": {"question_id": qid, "messages": [{"role": "user", "content": text}]}})
+    write_run(tmp_path / "run", rows)
+    out = {a["question_id"]: a for a in count_offered.annotate(tmp_path / "run", url)}
+    assert out["short"]["prompt_truncated"] is False and out["short"]["tokens_offered"] == 53
+    assert out["fits"]["prompt_truncated"] is False and out["fits"]["tokens_dropped"] == 0
+    assert out["long"]["prompt_truncated"] is True and out["long"]["tokens_offered"] > 4096
+    assert out["long"]["tokens_dropped"] == out["long"]["tokens_offered"] - 4096
+    assert not (tmp_path / "run" / "prompts.jsonl").exists()
+    assert json.loads(open(tmp_path / "run" / "answers.jsonl").readline())["tokens_offered"] == 53
