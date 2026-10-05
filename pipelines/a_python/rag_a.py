@@ -82,20 +82,33 @@ def sentence_spans(text):
 
 
 def chunk_text(text, starts, max_chars):
-    """Group sentences until a chunk would reach max_chars. A longer sentence is its own chunk."""
-    chunks, cur = [], None
+    """Group sentences as upload.py of the upstream project does.
+
+    Upstream adds each sentence with `(sentence + " ").strip()`, so sentences inside a chunk run together without a
+    space. Only the first sentence after a cut keeps its trailing space. We keep that behaviour, because the defaults
+    are what is measured. A sentence of max_chars or more is cut off as a chunk of its own.
+    """
+    chunks, cur, first, last = [], "", None, None
+
+    def close():
+        if cur.strip():
+            chunks.append((cur.strip(), first, last))
+
     for s, e in sentence_spans(text):
-        if cur is not None and (e - cur[0]) + 1 >= max_chars:
-            chunks.append(cur)
-            cur = None
-        cur = (s, e) if cur is None else (cur[0], e)
-    if cur is not None:
-        chunks.append(cur)
+        sentence = text[s:e]
+        if len(cur) + len(sentence) + 1 < max_chars:
+            cur += (sentence + " ").strip()
+            first = s if first is None else first
+            last = e
+        else:
+            close()
+            cur, first, last = sentence + " ", s, e
+    close()
     out = []
-    for i, (s, e) in enumerate(chunks):
-        first = bisect.bisect_right(starts, s) - 1
-        last = bisect.bisect_right(starts, max(s, e - 1)) - 1
-        out.append({"chunk_id": f"c{i:04d}", "pages": list(range(first + 1, last + 2)), "text": text[s:e]})
+    for i, (body, s, e) in enumerate(chunks):
+        a = bisect.bisect_right(starts, s) - 1
+        b = bisect.bisect_right(starts, max(s, e - 1)) - 1
+        out.append({"chunk_id": f"c{i:04d}", "pages": list(range(a + 1, b + 2)), "text": body})
     return out
 
 
@@ -111,11 +124,12 @@ def normalise(m):
 
 
 def rewrite_query(ollama, model, cfg, question, history):
+    """Upstream builds the history text from the last messages after the current question has been appended."""
     rw = cfg["query_rewriting"]
-    recent = history[-rw["history_messages"]:]
+    recent = (history + [{"role": "user", "content": question}])[-rw["history_messages"]:]
     hist = "\n".join(f"{m['role']}: {m['content']}" for m in recent)
-    prompt = rw["template"].format(history=hist, question=question)
-    reply = ollama.chat(model, [{"role": "user", "content": prompt}], {**cfg, "generation": {"max_tokens": 200}})
+    prompt = rw["template"].replace("{history}", hist).replace("{question}", question)
+    reply = ollama.chat(model, [{"role": rw.get("role", "user"), "content": prompt}], {**cfg, "generation": {"max_tokens": 200}})
     return reply["message"]["content"].strip()
 
 
@@ -133,7 +147,8 @@ def run(args):
     text, starts = flatten_pages(args.pdf)
     chunks = chunk_text(text, starts, cfg["chunking"]["max_chars"])
     t0 = time.time()
-    matrix = normalise(ollama.embed(cfg["embedding_model"], [c["text"] for c in chunks]))
+    # upstream embeds the lines of vault.txt, which end with a newline
+    matrix = normalise(ollama.embed(cfg["embedding_model"], [c["text"] + "\n" for c in chunks]))
     index_s = time.time() - t0
     with open(f"{args.out}/chunks.jsonl", "w") as f:
         for c in chunks:

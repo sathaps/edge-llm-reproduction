@@ -133,12 +133,13 @@ static async Task<ChatResponse> Generate(OllamaChatModel chat, JsonNode cfg, IRe
 static async Task<string> Rewrite(OllamaChatModel chat, JsonNode cfg, string question, List<Message> history)
 {
     var rw = cfg["query_rewriting"]!;
-    var recent = history.TakeLast(rw["history_messages"]!.GetValue<int>());
+    var recent = history.Append(Message.Human(question)).TakeLast(rw["history_messages"]!.GetValue<int>());
     var text = string.Join("\n", recent.Select(m => $"{(m.Role == MessageRole.Human ? "user" : "assistant")}: {m.Content}"));
     var prompt = rw["template"]!.GetValue<string>().Replace("{history}", text).Replace("{question}", question);
     var plain = JsonNode.Parse(cfg.ToJsonString())!;
     plain["generation"] = new JsonObject { ["max_tokens"] = 200, ["stop"] = null };
-    return (await Generate(chat, plain, new[] { Message.Human(prompt) })).LastMessageContent?.Trim() ?? question;
+    var role = rw["role"]?.GetValue<string>() == "system" ? MessageRole.System : MessageRole.Human;
+    return (await Generate(chat, plain, new[] { new Message(prompt, role) })).LastMessageContent?.Trim() ?? question;
 }
 
 static async Task<int?> ContextLength(HttpClient http, string model)
@@ -260,7 +261,8 @@ static class Chunker
             return new Chunk($"{prefix}{i:0000}", Enumerable.Range(first + 1, last - first + 1).ToList(), flat[g.s..g.e]);
         }).ToList();
 
-    // Same grouping as Implementation A, so a chunking experiment on B changes only the chunks.
+    // Same grouping as Implementation A, including its quirk: sentences inside a chunk are joined without a space,
+    // as in the upstream upload script. A chunking experiment on B then changes only where the chunks are cut.
     static List<Chunk> SentenceGroups(List<string> pages, int maxChars)
     {
         var (flat, starts) = Flatten(pages);
@@ -272,15 +274,36 @@ static class Chunker
             start = m.Index + m.Length;
         }
         spans.Add((start, flat.Length));
-        var groups = new List<(int s, int e)>();
-        (int s, int e)? cur = null;
+        var bodies = new List<(string text, int s, int e)>();
+        var cur = "";
+        int first = 0, last = 0;
+        var open = false;
+        void Close() { if (cur.Trim().Length > 0) bodies.Add((cur.Trim(), first, last)); }
         foreach (var (s, e) in spans.Where(x => x.e > x.s))
         {
-            if (cur is { } c && (e - c.s) + 1 >= maxChars) { groups.Add(c); cur = null; }
-            cur = cur is { } d ? (d.s, e) : (s, e);
+            var sentence = flat[s..e];
+            if (cur.Length + sentence.Length + 1 < maxChars)
+            {
+                cur += (sentence + " ").Trim();
+                if (!open) { first = s; open = true; }
+                last = e;
+            }
+            else
+            {
+                Close();
+                cur = sentence + " ";
+                first = s;
+                last = e;
+                open = true;
+            }
         }
-        if (cur is { } last) groups.Add(last);
-        return ToChunks("c", flat, starts, groups);
+        Close();
+        return bodies.Select((g, i) =>
+        {
+            var a = starts.FindLastIndex(x => x <= g.s);
+            var b = starts.FindLastIndex(x => x <= Math.Max(g.s, g.e - 1));
+            return new Chunk($"c{i:0000}", Enumerable.Range(a + 1, b - a + 1).ToList(), g.text);
+        }).ToList();
     }
 
     // One chunk per heading, so a procedure keeps its prerequisites and steps together even across pages.

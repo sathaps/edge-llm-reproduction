@@ -15,13 +15,18 @@ def test_chunks_stay_under_limit_and_cover_the_text(pdf_path):
     chunks = rag_a.chunk_text(text, starts, 200)
     assert len(chunks) > 1
     assert all(len(c["text"]) < 200 or "." not in c["text"][:-1] for c in chunks)
-    assert " ".join(c["text"] for c in chunks) == text
+    # sentences are glued without a space inside a chunk, so only the characters other than spaces must match
+    assert "".join(c["text"] for c in chunks).replace(" ", "") == text.replace(" ", "")
 
 
-def test_oversize_sentence_is_its_own_chunk():
-    text = "Short one. " + "x" * 300 + ". Another short."
-    chunks = rag_a.chunk_text(text, [0], 100)
-    assert any(len(c["text"]) > 300 for c in chunks)
+def test_sentences_in_a_chunk_run_together_as_in_the_upstream_script():
+    text = "One. Two. Three."
+    assert [c["text"] for c in rag_a.chunk_text(text, [0], 1000)] == ["One.Two.Three."]
+    # after a cut the first sentence keeps its trailing space, the next ones do not
+    five = "Aaaa. Bbbb. Cccc. Dddd. Eeee."
+    assert [c["text"] for c in rag_a.chunk_text(five, [0], 20)] == ["Aaaa.Bbbb.Cccc.", "Dddd. Eeee."]
+    # a sentence that does not fit next to the previous one is cut off alone
+    assert [c["text"] for c in rag_a.chunk_text("Aaaa. Bbbb. Cccc. Dddd.", [0], 12)] == ["Aaaa.Bbbb.", "Cccc.", "Dddd."]
 
 
 def test_chunk_pages_follow_offsets(pdf_path):
@@ -70,7 +75,7 @@ def test_end_to_end_files_and_grounding_text(pdf_path, url, stub, tmp_path):
     assert all(len(r["retrieved"]) <= 3 for r in ret)
     chat = [b for path, b in stub.requests if path == "/api/chat"]
     assert len(chat) == 2
-    assert "bring in extra relevant information" in chat[0]["messages"][0]["content"]
+    assert "bring in extra relevant infromation" in chat[0]["messages"][0]["content"]  # the typo is upstream's
     assert "Relevant Context:" in chat[0]["messages"][-1]["content"]
     assert chat[0]["options"] == {"temperature": 0, "seed": 42, "num_predict": 2000}
     run = json.load(open(out / "run.json"))
@@ -86,7 +91,10 @@ def test_rewrite_from_second_turn_when_chained(pdf_path, url, stub, tmp_path):
     out = run_a(pdf_path, url, tmp_path, "--conversation", "chained")
     chat = [b for p, b in stub.requests if p == "/api/chat"]
     assert len(chat) == 3  # one rewrite before the second answer
-    assert chat[1]["messages"][0]["content"].startswith("Rewrite the following query")
+    rewrite = chat[1]["messages"][0]
+    assert rewrite["role"] == "system" and rewrite["content"].startswith("Rewrite the following query")
+    # the history in the prompt is the last two messages including the current question
+    assert "assistant: stub answer" in rewrite["content"] and "user: Does model Y support the load test?" in rewrite["content"]
     ret = [json.loads(l) for l in open(out / "retrieval.jsonl")]
     assert ret[0]["query_used"] == "How do I start the unit?" and ret[1]["query_used"] == "stub answer"
 

@@ -47,6 +47,7 @@ def test_prompt_stop_and_determinism(dll, pdf_path, url, stub, tmp_path):
     prompt = chat[0]["messages"][-1]["content"]
     assert "say that you don't know" in prompt and "Keep the answer as short as possible." in prompt
     assert "Question: How do I start the unit?" in prompt and prompt.rstrip().endswith("Helpful Answer:")
+    assert prompt.startswith("Use the following pieces of context to answer the question at the end.\nIf the answer is not in context")
     opts = chat[0]["options"]
     assert opts["stop"] == ["\n"] and opts["temperature"] == 0 and opts["seed"] == 42
 
@@ -80,6 +81,7 @@ def test_no_rewriting_by_default_and_rewriting_when_set(dll, pdf_path, url, stub
     out = run_b(dll, pdf_path, url, tmp_path, "--conversation", "chained", "--set", "query_rewriting=" + json.dumps(rw))
     chat = [b for p, b in stub.requests if p == "/api/chat"]
     assert len(chat) == 3 and chat[1]["messages"][0]["content"].startswith("Rewrite the following query")
+    assert "user: Does model Y support the load test?" in chat[1]["messages"][0]["content"]
     assert rows(out / "retrieval.jsonl")[1]["query_used"] == "stub answer"
 
 
