@@ -1,0 +1,7 @@
+model,shape,units,prompt_chars,window_default,window_raised,tokens_offered,tokens_used,tokens_dropped,truncated,default_pass_s,raised_pass_s
+mistral:latest,A,3,3288,4096,32768,796,796,0,false,22.47,22.62
+mistral:latest,B,1,3554,4096,32768,1031,1031,0,false,25.69,25.12
+mistral:latest,B,2,6719,4096,32768,1843,1843,0,false,22.79,22.05
+mistral:latest,B,3,10943,4096,32768,2906,2906,0,false,32.73,31.71
+mistral:latest,B,5,16527,4096,32768,4158,2051,2107,true,54.55,39.24
+mistral:latest,B,8,27394,4096,32768,6913,2051,4862,true,54.43,101.16

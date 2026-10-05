@@ -1,0 +1,7 @@
+model,shape,units,prompt_chars,window_default,window_raised,tokens_offered,offered_pieces,template_overhead,tokens_single_raised_pass,tokens_used,tokens_dropped,truncated,default_pass_s,raised_pass_s
+llama3:latest,A,3,3288,4096,8192,687,3,10,692,692,0,false,48.31,43.32
+llama3:latest,B,1,3554,4096,8192,896,2,10,896,896,0,false,56.55,56.87
+llama3:latest,B,2,6719,4096,8192,1560,3,10,1560,1560,0,false,45.55,53.29
+llama3:latest,B,3,10943,4096,8192,2482,4,10,2482,2482,0,false,65.48,65.75
+llama3:latest,B,5,16527,4096,8192,3603,6,10,3603,3603,0,false,84.25,87.46
+llama3:latest,B,8,27394,4096,8192,6008,10,10,6007,2060,3948,true,133.01,207.98
