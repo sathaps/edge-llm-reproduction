@@ -1,0 +1,125 @@
+{
+  "note": "P16 (defaults against raised window) uses the pair of E2g and is not repeated here. The family has 15 tests.",
+  "comparisons": [
+    {
+      "id": "P1",
+      "family": "E1 A against B",
+      "a": "A-llama3",
+      "b": "B-llama3",
+      "rep": 1,
+      "data": "E1 repeat 1, marked"
+    },
+    {
+      "id": "P2",
+      "family": "E1 A against B",
+      "a": "A-mistral",
+      "b": "B-mistral",
+      "rep": 1,
+      "data": "E1 repeat 1, marked"
+    },
+    {
+      "id": "P3",
+      "family": "E1 A against B",
+      "a": "A-tinyllama",
+      "b": "B-tinyllama",
+      "rep": 1,
+      "data": "E1 repeat 1, marked"
+    },
+    {
+      "id": "P4",
+      "family": "E2 against base",
+      "a": "base",
+      "b": "E2a-sentence-groups",
+      "rep": 1,
+      "data": "E2 repeat 1, automatic scorer"
+    },
+    {
+      "id": "P5",
+      "family": "E2 against base",
+      "a": "base",
+      "b": "E2a-procedure",
+      "rep": 1,
+      "data": "E2 repeat 1, automatic scorer"
+    },
+    {
+      "id": "P6",
+      "family": "E2 against base",
+      "a": "base",
+      "b": "E2b-supplement",
+      "rep": 1,
+      "data": "E2 repeat 1, automatic scorer"
+    },
+    {
+      "id": "P7",
+      "family": "E2 against base",
+      "a": "base",
+      "b": "E2c-no-stop",
+      "rep": 1,
+      "data": "E2 repeat 1, automatic scorer"
+    },
+    {
+      "id": "P8",
+      "family": "E2 against base",
+      "a": "base",
+      "b": "E2c-no-shortest",
+      "rep": 1,
+      "data": "E2 repeat 1, automatic scorer"
+    },
+    {
+      "id": "P9",
+      "family": "E2 against base",
+      "a": "base",
+      "b": "E2d-threshold",
+      "rep": 1,
+      "data": "E2 repeat 1, automatic scorer"
+    },
+    {
+      "id": "P10",
+      "family": "E2 against base",
+      "a": "base",
+      "b": "E2e-small",
+      "rep": 1,
+      "data": "E2 repeat 1, automatic scorer"
+    },
+    {
+      "id": "P11",
+      "family": "E2 against base",
+      "a": "base",
+      "b": "E2e-large",
+      "rep": 1,
+      "data": "E2 repeat 1, automatic scorer"
+    },
+    {
+      "id": "P12",
+      "family": "E2 against base",
+      "a": "base",
+      "b": "E2f-rewriting",
+      "rep": 1,
+      "data": "E2 repeat 1, automatic scorer"
+    },
+    {
+      "id": "P13",
+      "family": "E2 against base",
+      "a": "base",
+      "b": "E2g-window-raised",
+      "rep": 1,
+      "data": "E2 repeat 1, automatic scorer"
+    },
+    {
+      "id": "P14",
+      "family": "E2 against base",
+      "a": "base",
+      "b": "E2h-no-retrieval",
+      "rep": 1,
+      "data": "E2 repeat 1, automatic scorer"
+    },
+    {
+      "id": "P15",
+      "family": "E2 against base",
+      "a": "base",
+      "b": "E2i-oracle",
+      "rep": 1,
+      "data": "E2 repeat 1, automatic scorer"
+    }
+  ]
+}

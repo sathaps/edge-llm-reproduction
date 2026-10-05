@@ -17,6 +17,12 @@ jobs:
       matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require the frozen protocol
+        run: |
+          git tag --list 'protocol-v*'
+          git merge-base --is-ancestor protocol-v1 HEAD || { echo "protocol-v1 is missing or is not an ancestor of this commit"; exit 1; }
       - id: matrix
         env:
           INPUT_REPS: ${{ inputs.reps }}

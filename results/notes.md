@@ -49,12 +49,12 @@ The prompt is built as the pipelines build it. B uses the first 1, 2, 3, 5 or 8 
 | llama3 | 4096 | B, 3 pages | 10,943 | 2482 | 2482 | none |
 | llama3 | 4096 | B, 5 pages | 16,527 | 3603 | 3603 | none |
 | llama3 | 4096 | B, 8 pages | 27,394 | 6008 | **2060 of 6008** | 3948 |
-| mistral | 4096 | A, 3 chunks | 3,288 | 796 | 796 | none |
-| mistral | 4096 | B, 1 page | 3,554 | 1031 | 1031 | none |
-| mistral | 4096 | B, 2 pages | 6,719 | 1843 | 1843 | none |
-| mistral | 4096 | B, 3 pages | 10,943 | 2906 | 2906 | none |
-| mistral | 4096 | B, 5 pages | 16,527 | 4158 | **2051 of 4158** | 2107 |
-| mistral | 4096 | B, 8 pages | 27,394 | 6913 | **2051 of 6913** | 4862 |
+| mistral | 4096 | A, 3 chunks | 3,288 | 796 | 798 | none |
+| mistral | 4096 | B, 1 page | 3,554 | 1032 | 1032 | none |
+| mistral | 4096 | B, 2 pages | 6,719 | 1844 | 1844 | none |
+| mistral | 4096 | B, 3 pages | 10,943 | 2907 | 2907 | none |
+| mistral | 4096 | B, 5 pages | 16,527 | 4159 | **2051 of 4159** | 2108 |
+| mistral | 4096 | B, 8 pages | 27,394 | 6914 | **2051 of 6914** | 4863 |
 | tinyllama | 2048 | A, 3 chunks | 3,288 | 862 | 854 | none |
 | tinyllama | 2048 | B, 1 page | 3,554 | 1102 | 1102 | none |
 | tinyllama | 2048 | B, 2 pages | 6,719 | 1954 | 1952 | none |
@@ -65,7 +65,7 @@ The prompt is built as the pipelines build it. B uses the first 1, 2, 3, 5 or 8 
 What the table shows:
 
 - When a prompt exceeds the window, the model sees about half of the window and the rest is lost. The tokens used were 2060 of 4096 for llama3, 2051 of 4096 for mistral and 1026 of 2048 for tinyllama.
-- On this sample, B's five-page prompt fits in llama3 (3603 of 4096 tokens), is cut for mistral (4158 offered) and is cut for tinyllama from three pages on. The default prompt of A, three chunks, fits in every model.
+- On this sample, B's five-page prompt fits in llama3 (3603 of 4096 tokens), is cut for mistral (4159 offered) and is cut for tinyllama from three pages on. The default prompt of A, three chunks, fits in every model.
 - The pages of the Fulton manual hold 4,506 characters on average (594,808 over 132 pages). The five pages in this sample hold 16,527 characters. Five pages of the average size would hold about 22,530 characters, so llama3 may cut B's prompt as well. E1 records the counts per question.
 - The counts of E1 are those of the default window. A raised window is an E2 factor.
 
@@ -114,7 +114,7 @@ The six cells fit. They do not fit in one job, because B-llama3 alone needs 6.93
 
 Actions minutes: the Actions API reported 0 billable milliseconds for run 37375097339, which took 15 minutes 31 seconds on the runner. The repository is public. The runner time of E1 is about 939 minutes by the arithmetic above, spread over 18 jobs.
 
-E2 model: `llama3:latest`. Its tag resolves to the original id, which mistral's does not. Its default window of 4096 held B's five-page prompt on the AERCO text, while mistral's and tinyllama's counts suggest truncation. E2 has eleven cells, including E2g (context window raised to 8192). With llama3 at B's measured time, 3 repeats of 40 questions take 76.2 hours of runner time (25.4 hours for one repeat), again as 33 jobs of about 2.3 hours. E2e uses the other two models for its small and large cells.
+E2 model: `llama3:latest`. Its tag resolves to the original id, which mistral's does not. Its default window of 4096 held B's five-page prompt on the AERCO text, while mistral's and tinyllama's counts suggest truncation. E2 has thirteen cells, including E2g (context window raised to 8192) and the two brackets E2h (no retrieval) and E2i (oracle retrieval). With llama3 at B's measured time, 3 repeats of 40 questions take 90.1 hours of runner time (30.0 hours for one repeat), again as 39 jobs of about 2.3 hours. E2e uses the other two models for its small and large cells.
 
 Larger runners: we measured one runner size only, so we cannot state a speed-up. Runner minutes are not the limit for a public repository. The limits are the six hours per job and the number of jobs that run at once, and splitting by cell and repeat addresses both. A larger runner would shorten each job only if generation and prompt processing scale with cores, which we have not measured.
 

@@ -81,6 +81,7 @@ foreach (var q in questions)
     retRows.Add(new
     {
         question_id = q.Id, query_used = query, mode,
+        given_text = mode == "oracle" ? string.Join("\n\n", given.Select(n => pageTexts[n - 1])) : null,
         retrieved = mode == "retrieve"
             ? hits.Select(h => new { chunk_id = h.chunk.Id, pages = h.chunk.Pages, score = (float?)null, distance = (float?)h.v.Distance }).ToList()
             : given.Select(n => new { chunk_id = $"page-{n}", pages = new List<int> { n }, score = (float?)null, distance = (float?)null }).ToList(),

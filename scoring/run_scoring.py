@@ -7,6 +7,9 @@
   run_scoring.py join MARKING_DIR OUT_DIR
   run_scoring.py score questions/questions.csv OUT.csv LABEL=RUN_DIR [LABEL=RUN_DIR ...]
   run_scoring.py agreement MARKING_DIR
+  run_scoring.py second-marker MARKING_DIR [SIZE [SEED]]
+  run_scoring.py second-agreement MARKING_DIR SECOND_SHEET.csv
+  run_scoring.py analyze OUTCOMES.csv experiments/comparisons.json OUT_PREFIX
   run_scoring.py tables retrieval|exclusion|correct ...   (see summary_tables.py)
 """
 import csv
@@ -56,12 +59,26 @@ def main(argv):
             answers, retrieval, chunks = blind_export.load_run(run_dir)
             for a in answers:
                 if a["question_id"] in qs:
-                    context = " ".join(chunks[h["chunk_id"]]["text"] for h in retrieval[a["question_id"]]["retrieved"])
+                    context = " ".join(blind_export.context_texts(retrieval[a["question_id"]], chunks))
                     rows.append({"config_id": label, "question_id": a["question_id"], **rubric.score_answer(qs[a["question_id"]], a["answer"], context)})
         with open(rest[1], "w", newline="") as f:
             w = csv.DictWriter(f, fieldnames=list(rows[0]) if rows else [])
             w.writeheader()
             w.writerows(rows)
+        return 0
+    if cmd == "second-marker":
+        ids = blind_export.second_marker_sample(rest[0], int(rest[1]) if len(rest) > 1 else 60, int(rest[2]) if len(rest) > 2 else 7)
+        print(f"{len(ids)} answers written to {rest[0]}/sheet_second_marker.csv")
+        return 0
+    if cmd == "second-agreement":
+        d = Path(rest[0])
+        first = {r["answer_id"]: r for r in marks.read_csv(d / "sheet_blind.csv") if r["correct"].strip()}
+        second = {r["answer_id"]: r for r in marks.read_csv(Path(rest[1])) if r["correct"].strip()}
+        print(agreement.render_two_markers(agreement.two_markers(first, second)), end="")
+        return 0
+    if cmd == "analyze":
+        import analysis
+        analysis.run(rest[0], rest[1], rest[2])
         return 0
     if cmd == "agreement":
         d = Path(rest[0])

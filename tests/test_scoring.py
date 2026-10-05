@@ -269,3 +269,76 @@ def test_verification_pack_has_one_row_per_question_and_empty_verdict_columns(tm
     assert all(ws.cell(row=r, column=header.index("verdict") + 1).value in (None, "") for r in range(2, 5))
     rows = marks.read_csv(tmp_path / "pack" / "verification_pack.csv")
     assert len(rows) == 3 and rows[0]["verdict"] == ""
+
+
+def test_wilson_mcnemar_and_holm():
+    import analysis
+    lo, hi = analysis.wilson(8, 10)
+    assert round(lo, 3) == 0.490 and round(hi, 3) == 0.943
+    assert analysis.wilson(0, 0) == (None, None)
+    assert analysis.mcnemar_exact(0, 0) == 1.0
+    assert abs(analysis.mcnemar_exact(0, 5) - 0.0625) < 1e-12
+    assert abs(analysis.mcnemar_exact(2, 8) - 0.109375) < 1e-12
+    assert analysis.mcnemar_exact(5, 5) == 1.0
+    assert analysis.holm([0.01, 0.04, 0.03]) == [0.03, 0.06, 0.06]
+
+
+def test_comparisons_pair_questions_and_count_discordant(tmp_path):
+    import analysis, json
+    rows = []
+    for q, (a, b) in enumerate([("yes", "no")] * 6 + [("no", "yes")] + [("yes", "yes")] * 3 + [("partial", "no")]):
+        rows += [{"config_id": "A-x@1", "question_id": f"q{q}", "outcome": a}, {"config_id": "B-x@1", "question_id": f"q{q}", "outcome": b}]
+    res = analysis.run_comparisons(rows, [{"id": "P1", "a": "A-x", "b": "B-x", "rep": 1}])[0]
+    assert (res["N_paired"], res["a_correct"], res["b_correct"], res["a_only"], res["b_only"]) == (11, 9, 4, 6, 1)
+    assert abs(res["p_exact"] - 0.125) < 1e-12 and res["p_holm"] == res["p_exact"]
+    partial = analysis.run_comparisons(rows, [{"id": "P1", "a": "A-x", "b": "B-x"}], partial_credit=True)[0]
+    assert partial["a_only"] == 7
+    csvp = tmp_path / "o.csv"
+    csvp.write_text("config_id,question_id,outcome\n" + "".join(f'{r["config_id"]},{r["question_id"]},{r["outcome"]}\n' for r in rows))
+    cmp = tmp_path / "c.json"
+    cmp.write_text(json.dumps({"comparisons": [{"id": "P1", "a": "A-x", "b": "B-x", "rep": 1}]}))
+    analysis.run(str(csvp), str(cmp), str(tmp_path / "out"))
+    assert (tmp_path / "out_counts.csv").exists() and (tmp_path / "out_comparisons_with_partial.csv").exists()
+
+
+def test_kappa_and_two_markers():
+    import agreement
+    k, n, agree = agreement.cohen_kappa([("yes", "yes")] * 20 + [("no", "no")] * 15 + [("yes", "no")] * 5 + [("no", "yes")] * 10)
+    assert (n, agree) == (50, 35) and abs(k - 0.4) < 1e-9
+    assert agreement.cohen_kappa([("yes", "yes")] * 4)[0] is None
+    assert agreement.cohen_kappa([("", "yes")]) == (None, 0, 0)
+    res = agreement.two_markers({"a1": {"correct": "yes"}, "a2": {"correct": "no"}}, {"a1": {"correct": "yes"}, "a2": {"correct": "yes"}, "a3": {"correct": "no"}})
+    assert res["correct"]["N"] == 2 and res["correct"]["agree"] == 1
+    assert "1 of 2" in agreement.render_two_markers(res)
+
+
+def test_second_marker_sample_is_blind_and_reproducible(tmp_path):
+    import blind_export, csv
+    rows = [{"answer_id": f"ans-{i:04d}", "question": "q", "reference_answer": "r", "required_elements": "e", "category": "c", "answer": "a",
+             "correct": "yes", "complete": "yes", "respects_applicability": "", "abstained": ""} for i in range(1, 101)]
+    with open(tmp_path / "sheet_blind.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(rows[0]))
+        w.writeheader()
+        w.writerows(rows)
+    ids = blind_export.second_marker_sample(tmp_path, 60, 7)
+    assert len(ids) == 60 and len(set(ids)) == 60 and ids == blind_export.second_marker_sample(tmp_path, 60, 7)
+    sample = list(csv.DictReader(open(tmp_path / "sheet_second_marker.csv")))
+    assert all(r["correct"] == "" and r["complete"] == "" for r in sample) and "config_id" not in sample[0]
+
+
+def test_context_texts_use_the_given_pages_in_the_oracle_bracket():
+    import blind_export
+    assert blind_export.context_texts({"retrieved": [], "given_text": "page text"}, {}) == ["page text"]
+    assert blind_export.context_texts({"retrieved": [], "given_text": ""}, {}) == []
+    assert blind_export.context_texts({"retrieved": [{"chunk_id": "c1"}]}, {"c1": {"text": "t"}}) == ["t"]
+
+
+def test_summary_tables_name_run_and_commit(tmp_path):
+    import check_index
+    (tmp_path / "index.md").write_text("| `e1` | table |\n")
+    (tmp_path / "summary.md").write_text("## A\n\nSource: run 1, commit abc. Index entry: `e1`.\n\n| a | b |\n|---|---|\n")
+    assert check_index.problems(tmp_path) == []
+    (tmp_path / "summary.md").write_text("## A\n\n| a | b |\n|---|---|\n")
+    assert len(check_index.problems(tmp_path)) == 1
+    (tmp_path / "summary.md").write_text("## A\n\nSource: run 1, commit abc. Index entry: `zz`.\n\n| a |\n")
+    assert "zz" in check_index.problems(tmp_path)[0]

@@ -6,11 +6,15 @@ Status: no E1, E2, E4 or E5 results yet. The gate results below need no model. R
 
 ## Runner measurements
 
+Source: run 37375097339 (`manual-models-budget`), commit 05615c8. Index entry: `runner-measurements`.
+
 Tag resolution, context windows, speed and the per-question time budget are in `results/notes.md`. They are timing probes and not question-set results.
 
 ## E3 steps 1 and 2: gate unit tests and scripted proposals
 
-No model is involved. The state reader is a stand-in with fixed values. Both ran in a development container (4 CPUs, 15 GB, .NET SDK 8.0), not on a runner.
+No model is involved. The state reader is a stand-in with fixed values. The scripted run was in a development container (4 CPUs, 15 GB, .NET SDK 8.0), not on a runner.
+
+Source: unit tests on a runner, run 37375097256 (`gate-tests`), commit 05615c8; scripted proposals in the development container, commit 05615c8 (the files under `gate/` are the same at later commits). Index entry: `gate-e3-steps-1-2`.
 
 | Run | Command | Result |
 |---|---|---|
@@ -43,7 +47,7 @@ All 57 outcomes matched the reason code the rule predicts. Every one of the 14 r
 ## Limitations
 
 - One manual. Every result comes from a single public manual. Findings on retrieval and applicability may not carry over to manuals with other layouts.
-- One marker. A single person marks the answers. There is no agreement figure between markers. Marking is blind to configuration, but one marker's judgement on "partial" and "complete" is not checked by anyone else.
+- One main marker. One person marks every E1 repeat-1 answer. A second person marks a random blind sample of 60 answers, and the agreement is reported as counts and Cohen's kappa. Marking is blind to configuration, but the judgement on "partial" and "complete" rests on those two people by anyone else.
 - Small models on a 4-CPU runner. Model results come from models served by Ollama on a GitHub-hosted 4-CPU, 15 GB, CPU-only runner. They say nothing about larger models or other hardware. E4 figures are runner measurements, not edge-device measurements.
 - A re-implementation, not the original builds. The two pipelines are rebuilt from a written description on public material. The original builds, documents and hardware are not part of this repository. No result here was measured on them.
 - Small samples. Counts are n of N with small N per category. A difference of one or two questions is within what one reworded question could change.
