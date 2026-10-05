@@ -1,0 +1,46 @@
+name: manual-scan
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/manual-scan.yml
+      - scripts/manual_links.py
+      - scripts/manual_summary.py
+      - manuals/candidates2.txt
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe the candidates
+        run: |
+          mkdir -p out/manuals
+          which pdftotext pdfinfo || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
+          grep -v '^#' manuals/candidates2.txt | while read -r name url; do
+            [ -z "$name" ] && continue
+            case "$name" in
+              seed_*)
+                echo "== seed $name"
+                i=0
+                for link in $(python3 scripts/manual_links.py "$url" 8); do
+                  i=$((i+1)); echo "link $i: $link"
+                  python3 scripts/manual_probe.py "out/manuals/${name}_$i" "$link" > "out/manuals/${name}_$i.log" 2>&1 || true
+                done ;;
+              *)
+                python3 scripts/manual_probe.py "out/manuals/$name" "$url" > "out/manuals/$name.log" 2>&1 || true ;;
+            esac
+          done
+      - name: Summary table
+        run: python3 scripts/manual_summary.py out/manuals out/manual_scan.csv
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manual-scan
+          path: |
+            out/manual_scan.csv
+            out/manuals/*/provenance.json
+            out/manuals/*/applicability.txt
+            out/manuals/*/licence.txt
