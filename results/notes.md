@@ -10,7 +10,7 @@ The gate unit tests also ran on a hosted runner (run 37375097256, commit 05615c8
 
 - Original models, from `ollama list` on the original machine: llama3:latest (365c0bd3c000), mistral:latest (f974a74358d6), tinyllama:latest (2644915ede35), mxbai-embed-large:latest (468836162de7), all-minilm:latest (1b226e2802db).
 - E1 is a full grid of two implementations by three models (`PROTOCOL.md` section 6, E1).
-- Tag resolution, from run 37375097339 (`results/run-37375097339-manual-models-budget/models_resolve.csv`): `llama3:latest`, `tinyllama:latest`, `mxbai-embed-large:latest` and `all-minilm:latest` resolve to the original ids. `mistral:latest` resolves to `6577803aa9a0`, not to `f974a74358d6`. The tag now names the same model as `mistral:7b`, so the original `mistral:latest` is not available under that tag. Whether another tag carries `f974a74358d6` is open. Until it is settled, the mistral cells run today's `mistral:latest` and are labelled so.
+- Tag resolution, from run 37375097339 (`results/run-37375097339-manual-models-budget/models_resolve.csv`): `llama3:latest`, `tinyllama:latest`, `mxbai-embed-large:latest` and `all-minilm:latest` resolve to the original ids. `mistral:latest` resolves to `6577803aa9a0`, not to `f974a74358d6`. The tag now names the same model as `mistral:7b`, so the original `mistral:latest` is not available under that tag. We listed the 84 tags of the `mistral` library (the `tags` job of runs 37379679812 and 37380524685) and computed each tag's id from its manifest. A self-check on `latest` and `7b` gave `6577803aa9a0` as expected. No tag carries `f974a74358d6`. The original model cannot be pulled, so the mistral cells run today's `mistral:latest` and are labelled so.
 - Embedding dimensions measured in the same run: `mxbai-embed-large` 1024, `all-minilm` 384. B declares its collection with 1536.
 
 ## Manual
@@ -33,23 +33,55 @@ Scripted proposals:
 
 ## Default context windows and silent truncation
 
-The context length in effect, as reported by `/api/ps` while each model was loaded with default settings (run 37375097339):
+Ollama cuts a prompt that exceeds the context window and says nothing. We measured what the models see. Two checks, one table each. Both ran on hosted runners with 4 CPUs and 15 GB, on pages of the Fulton manual (`results/run-37380524685-truncation-checks/` and `results/run-37379679812-truncation-checks/`).
 
-| Model | Context length |
-|---|---|
-| llama3:latest | 4096 |
-| mistral:latest | 4096 |
-| tinyllama:latest | 2048 |
-| all-minilm:latest (embedding) | 256 |
-| mxbai-embed-large:latest (embedding) | 512 |
+The window in effect, as `/api/ps` reports it for default settings: llama3 4096, mistral 4096, tinyllama 2048, all-minilm 256, mxbai-embed-large 512.
 
-The budget probe sent the same 16,590-character prompt (five whole pages of the AERCO text, B's shape) to each model. The prompt token counts that Ollama reported were 3550 for llama3, 2051 for mistral and 1026 for tinyllama. The tokenizers differ, but the counts for mistral and tinyllama are close to half of their windows. Ollama discards part of a prompt that exceeds the window, and a count at about half the window is what we expect after that. We have not confirmed it. The check is to count the same prompt with a larger window.
+### Check 1: prompts sent to the chat models
 
-Consequences for the experiments:
+The prompt is built as the pipelines build it. B uses the first 1, 2, 3, 5 or 8 text-rich whole pages after the first quarter of the manual, A uses three chunks of 1000 characters. Tokens used is the `prompt_eval_count` with the default window. Tokens offered is the count of the same prompt without a cut. Ollama limits `num_ctx` to the length a model was trained with (8192 for llama3, 2048 for tinyllama), so for llama3 and tinyllama we counted the offered tokens piece by piece. The two methods differ by at most 8 tokens where a prompt fits. For mistral a single pass with a window of 32768 held every prompt.
 
-- The `prompt_near_context_limit` flag in the pipelines (95% of the window) did not fire for mistral at 2051 of 4096 or for tinyllama at 1026 of 2048. The flag is not a reliable sign of truncation. The raw counts stay in the outputs, and an exact count is to be added.
-- B retrieves five whole pages. The pages of the Fulton manual hold 4,506 characters on average (594,808 characters over 132 pages), against 2,287 in the AERCO text (329,262 over 144). Five Fulton pages average 22,530 characters, more than the 16,590 of the probe prompt, which already used 3550 of llama3's 4096 tokens. B's default prompt on the Fulton manual is therefore expected to exceed the default window of every model in the grid. We have not measured it yet.
-- Both embedding models run with windows of 256 and 512 tokens. A page of either manual is several times longer than 256 tokens. If Ollama truncates input to the window, which is its default for embeddings, B embeds only the beginning of each page. We have not tested that.
+| Model | Window in effect | Prompt | Characters | Tokens offered | Tokens used | Dropped |
+|---|---|---|---|---|---|---|
+| llama3 | 4096 | A, 3 chunks | 3,288 | 687 | 692 | none |
+| llama3 | 4096 | B, 1 page | 3,554 | 896 | 896 | none |
+| llama3 | 4096 | B, 2 pages | 6,719 | 1560 | 1560 | none |
+| llama3 | 4096 | B, 3 pages | 10,943 | 2482 | 2482 | none |
+| llama3 | 4096 | B, 5 pages | 16,527 | 3603 | 3603 | none |
+| llama3 | 4096 | B, 8 pages | 27,394 | 6008 | **2060 of 6008** | 3948 |
+| mistral | 4096 | A, 3 chunks | 3,288 | 796 | 796 | none |
+| mistral | 4096 | B, 1 page | 3,554 | 1031 | 1031 | none |
+| mistral | 4096 | B, 2 pages | 6,719 | 1843 | 1843 | none |
+| mistral | 4096 | B, 3 pages | 10,943 | 2906 | 2906 | none |
+| mistral | 4096 | B, 5 pages | 16,527 | 4158 | **2051 of 4158** | 2107 |
+| mistral | 4096 | B, 8 pages | 27,394 | 6913 | **2051 of 6913** | 4862 |
+| tinyllama | 2048 | A, 3 chunks | 3,288 | 862 | 854 | none |
+| tinyllama | 2048 | B, 1 page | 3,554 | 1102 | 1102 | none |
+| tinyllama | 2048 | B, 2 pages | 6,719 | 1954 | 1952 | none |
+| tinyllama | 2048 | B, 3 pages | 10,943 | 3090 | **1026 of 3090** | 2064 |
+| tinyllama | 2048 | B, 5 pages | 16,527 | 4405 | **1026 of 4405** | 3379 |
+| tinyllama | 2048 | B, 8 pages | 27,394 | 7288 | **1026 of 7288** | 6262 |
+
+What the table shows:
+
+- When a prompt exceeds the window, the model sees about half of the window and the rest is lost. The tokens used were 2060 of 4096 for llama3, 2051 of 4096 for mistral and 1026 of 2048 for tinyllama.
+- On this sample, B's five-page prompt fits in llama3 (3603 of 4096 tokens), is cut for mistral (4158 offered) and is cut for tinyllama from three pages on. The default prompt of A, three chunks, fits in every model.
+- The pages of the Fulton manual hold 4,506 characters on average (594,808 over 132 pages). The five pages in this sample hold 16,527 characters. Five pages of the average size would hold about 22,530 characters, so llama3 may cut B's prompt as well. E1 records the counts per question.
+- The counts of E1 are those of the default window. A raised window is an E2 factor.
+
+### Check 2: text sent to the embedding models
+
+We embedded 20 pages spread over the manual (median 2,390 characters, median 617 tokens) with Ollama's default behaviour, and embedded the longest prefix of each page that fits the window with truncation switched off. Tokens offered are the sum of the token counts of consecutive pieces that each fit the window.
+
+| Model | Window | Pages cut | Median tokens offered | Median tokens used | Cosine, full page against page cut to the window (median, lowest) | Cosine, full page against the text that was dropped (median) |
+|---|---|---|---|---|---|---|
+| all-minilm | 256 | 20 of 20 | 617 | 256 | 0.999866, 0.988759 | 0.616611 |
+| mxbai-embed-large | 512 | 13 of 20 | 617 | 512 | 1.0, 0.93246 | 0.788456 |
+
+- Both models drop the text beyond the window without a message. The embedding of a full page is practically the embedding of its beginning.
+- B embeds whole pages with all-minilm, so a page is represented by its first 256 tokens. Every sampled page was longer than that.
+- A's chunks hold about 1000 characters and fit the window of mxbai-embed-large.
+- The lowest cosines are probably the word-boundary cut being a few tokens shorter than the window. We have not checked that.
 
 ## Budget measurements
 
