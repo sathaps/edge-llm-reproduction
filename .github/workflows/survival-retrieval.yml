@@ -1,0 +1,70 @@
+name: survival-retrieval
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/survival-retrieval.yml
+      - scripts/check_prompt_survival.py
+      - scripts/check_embedding_retrieval.py
+
+jobs:
+  survival:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        model: ["llama3:latest", "mistral:latest", "tinyllama:latest"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ollama and pull the model
+        run: |
+          mkdir -p out
+          { echo "date_utc: $(date -u +%FT%TZ)"; echo "commit: $GITHUB_SHA"; nproc; free -g; } | tee out/env.txt
+          curl -fsSL https://ollama.com/install.sh | sh
+          sudo systemctl stop ollama
+          (OLLAMA_NUM_PARALLEL=1 ollama serve > out/ollama_serve.log 2>&1 &)
+          for i in $(seq 1 30); do curl -s localhost:11434/api/version && break; sleep 1; done
+          echo "ollama_version: $(ollama --version 2>&1 | tail -1)" | tee -a out/env.txt
+          ollama pull "${{ matrix.model }}"
+      - name: Ask the model which reference codes it can see
+        run: python3 scripts/check_prompt_survival.py out/survival "${{ matrix.model }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: survival-${{ strategy.job-index }}
+          path: |
+            out/env.txt
+            out/survival/
+
+  retrieval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ollama and pull the embedding models
+        run: |
+          mkdir -p out
+          { echo "date_utc: $(date -u +%FT%TZ)"; echo "commit: $GITHUB_SHA"; nproc; free -g; } | tee out/env.txt
+          curl -fsSL https://ollama.com/install.sh | sh
+          for i in $(seq 1 30); do curl -s localhost:11434/api/version && break; sleep 1; done
+          echo "ollama_version: $(ollama --version 2>&1 | tail -1)" | tee -a out/env.txt
+          ollama pull all-minilm:latest
+          ollama pull mxbai-embed-large:latest
+      - name: Fetch the manual
+        run: |
+          which pdftotext || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
+          read -r name url < <(grep -v '^#' manuals/chosen.txt | head -n 1)
+          python3 scripts/manual_probe.py out/manual "$url" > out/manual_probe.log
+          python3 -c "import json; p = json.load(open('out/manual/provenance.json')); print(p['sha256'], p['pages'])"
+      - name: Query each passage with its own first sentence
+        run: python3 scripts/check_embedding_retrieval.py out/manual/pages out/retrieval
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: embedding-retrieval
+          path: |
+            out/env.txt
+            out/retrieval/
+            out/manual/provenance.json

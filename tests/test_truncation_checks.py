@@ -126,3 +126,40 @@ def test_count_offered_marks_only_cut_prompts(tmp_path, stub, url, monkeypatch):
     assert out["long"]["tokens_dropped"] == out["long"]["tokens_offered"] - 4096
     assert not (tmp_path / "run" / "prompts.jsonl").exists()
     assert json.loads(open(tmp_path / "run" / "answers.jsonl").readline())["tokens_offered"] == 53
+
+
+def test_survival_table_follows_what_the_model_lists(tmp_path, stub, url, monkeypatch):
+    import check_prompt_survival as cs
+    stub.emulate_context = True
+    patch_urls(monkeypatch, url)
+
+    def reply(path, body):
+        text = body["messages"][-1]["content"]
+        words = text.split()
+        tail = " ".join(words[len(words) // 2:])  # a model that keeps the second half
+        return "\n".join(w for w in cs.WORDS if w in tail)
+    stub.reply = reply
+    rows = cs.run(str(tmp_path / "out"), "llama3:latest", str(ROOT / "config/pipelines.json"))
+    by = {(r["pages"], r["part"]): r for r in rows}
+    assert by[(2, "question")]["listed_by_model"] is True and by[(2, "question")]["truncated"] is False
+    assert by[(8, "instructions")]["truncated"] is True and by[(8, "instructions")]["listed_by_model"] is False
+    assert by[(8, "question")]["listed_by_model"] is True
+    assert len([r for r in rows if r["pages"] == 8]) == 2 + 2 * 8
+
+
+def test_embedding_retrieval_counts_and_prints_no_text(tmp_path, stub, url, monkeypatch, capsys):
+    import check_embedding_retrieval as cr
+    stub.emulate_context = True
+    patch_urls(monkeypatch, url)
+    d = tmp_path / "pages"
+    d.mkdir()
+    for i in range(12):
+        sentences = [f"Page {i} sentence {j} mentions item{i}x{j} and part{i}y{j} here." for j in range(60)]
+        (d / f"{i + 1:03d}.txt").write_text(" ".join(sentences))
+    rows = cr.run(str(d), str(tmp_path / "out"), ["all-minilm:latest"])
+    by = {r["group"]: r for r in rows}
+    assert by["inside"]["queries"] > 0 and by["beyond"]["queries"] > 0
+    assert by["inside"]["hit_top5"] <= by["inside"]["queries"]
+    assert "mentions" not in capsys.readouterr().out
+    detail = open(tmp_path / "out" / "embedding_retrieval_queries.csv").read()
+    assert "mentions" not in detail

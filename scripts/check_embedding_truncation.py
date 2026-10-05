@@ -11,11 +11,12 @@ import csv, glob, json, math, os, re, statistics, sys, urllib.error, urllib.requ
 
 MODELS = ["all-minilm:latest", "mxbai-embed-large:latest"]
 SAMPLE = 20
+BASE = "http://localhost:11434"
 
 
 def embed(model, text, truncate=True):
     body = json.dumps({"model": model, "input": text, "truncate": truncate}).encode()
-    req = urllib.request.Request("http://localhost:11434/api/embed", body, {"Content-Type": "application/json"})
+    req = urllib.request.Request(BASE + "/api/embed", body, {"Content-Type": "application/json"})
     try:
         r = json.load(urllib.request.urlopen(req, timeout=600))
     except urllib.error.HTTPError:
@@ -29,7 +30,7 @@ def cosine(a, b):
 
 
 def window(model):
-    ps = json.load(urllib.request.urlopen("http://localhost:11434/api/ps", timeout=60))
+    ps = json.load(urllib.request.urlopen(BASE + "/api/ps", timeout=60))
     for m in ps.get("models", []):
         if m["name"] == model:
             return m.get("context_length")
