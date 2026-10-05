@@ -35,6 +35,13 @@ jobs:
           done
       - name: Summary table
         run: python3 scripts/manual_summary.py out/manuals out/manual_scan.csv
+      - name: Show applicability and licence lines of the best candidates
+        run: |
+          for n in ir_up5s_up6s cummins_fire_pump_engine_iom cummins_cfp11e_fire_pump_engine; do
+            echo "######## $n"; echo "-- licence"; cut -c1-220 "out/manuals/$n/licence.txt" | head -8
+            echo "-- applicability"; cut -c1-260 "out/manuals/$n/applicability.txt" | head -24
+            echo "-- cover"; tr -s ' \n' ' ' < "out/manuals/$n/cover.txt" | cut -c1-500; echo
+          done
       - uses: actions/upload-artifact@v4
         if: always()
         with:
