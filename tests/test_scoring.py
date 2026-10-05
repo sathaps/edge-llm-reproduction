@@ -380,3 +380,24 @@ def test_validate_requires_forbidden_elements_on_applicability_rows_and_can_skip
     old = [{k: v for k, v in r.items() if k != "forbidden_elements"} for r in rows]
     errors, warnings = qmod.validate(old, check_counts=False)
     assert errors == [] and any("forbidden_elements" in w for w in warnings)
+
+
+def test_merge_applies_changed_cells_and_verdicts(tmp_path):
+    import merge_verification as mv
+    base = {"question": "q", "reference_answer": "r", "source_pages": "1", "exclusion_pages": "", "required_elements": "a", "forbidden_elements": "", "verified_by": "", "verified_on": ""}
+    main = [{**base, "id": f"sc-{i}", "category": "self_contained"} for i in range(1, 6)]
+    main[0]["forbidden_elements"] = "repo value"  # corrected in the repo after delivery
+    delivered = [{**base, "id": r["id"], "set": "main", "verdict": "", "correction": ""} for r in main]
+    delivered[0]["forbidden_elements"] = "old value"
+    returned = [dict(d) for d in delivered]
+    returned[0]["verdict"] = "ok"
+    returned[1].update(verdict="fix", reference_answer="r2")
+    returned[2].update(verdict="fix", correction="check page")
+    returned[3].update(verdict="drop")
+    unread = []
+    report = mv.merge(delivered, returned, main, unread, "M", "2026-10-06")
+    by_id = {q["id"]: q for q in main}
+    assert by_id["sc-1"]["forbidden_elements"] == "repo value" and by_id["sc-1"]["verified_by"] == "M"
+    assert by_id["sc-2"]["reference_answer"] == "r2" and by_id["sc-2"]["verified_by"] == "M"
+    assert by_id["sc-3"]["verified_by"] == "" and report["unresolved"][0].startswith("sc-3")
+    assert by_id["sc-4"].get("_drop") and report["dropped"] == ["sc-4"] and report["unverified"] == ["sc-5"]
