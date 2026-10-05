@@ -4,17 +4,18 @@ Deviations, failures and anything a reader should know. Every figure here comes 
 
 ## Gate runs
 
-The gate unit tests and the scripted proposals ran in a development container with 4 CPUs (Intel Xeon at 2.80 GHz), 15 GB memory and no swap. It is not a runner, and its numbers are labelled as such wherever they appear. They need no model and no download.
+The gate unit tests also ran on a hosted runner (run 37375097256, commit 05615c8): 61 passed of 61. The tests and the scripted proposals first ran in a development container with 4 CPUs (Intel Xeon at 2.80 GHz), 15 GB memory and no swap. It is not a runner, and its numbers are labelled as such wherever they appear. They need no model and no download.
 
 ## Models
 
 - Original models, from `ollama list` on the original machine: llama3:latest (365c0bd3c000), mistral:latest (f974a74358d6), tinyllama:latest (2644915ede35), mxbai-embed-large:latest (468836162de7), all-minilm:latest (1b226e2802db).
 - E1 is a full grid of two implementations by three models (`PROTOCOL.md` section 6, E1).
-- Whether today's tags resolve to the original ids is recorded by the `manual-models-budget` workflow, whose output is copied into `results/` after it has run.
+- Tag resolution, from run 37375097339 (`results/run-37375097339-manual-models-budget/models_resolve.csv`): `llama3:latest`, `tinyllama:latest`, `mxbai-embed-large:latest` and `all-minilm:latest` resolve to the original ids. `mistral:latest` resolves to `6577803aa9a0`, not to `f974a74358d6`. The tag now names the same model as `mistral:7b`, so the original `mistral:latest` is not available under that tag. Whether another tag carries `f974a74358d6` is open. Until it is settled, the mistral cells run today's `mistral:latest` and are labelled so.
+- Embedding dimensions measured in the same run: `mxbai-embed-large` 1024, `all-minilm` 384. B declares its collection with 1536.
 
 ## Manual
 
-Candidates and the verification record are in `docs/manual_candidates.md`. The verification job is `manual-models-budget`.
+Candidates and the verification record are in `docs/manual_candidates.md`. The Fulton Endura XE manual is adopted provisionally: 132 pages, civilian, several capacities, four passages that limit a statement to some variants. `manuals/chosen.txt` names it.
 
 ## Gate observations
 
@@ -29,6 +30,65 @@ Scripted proposals:
 - The harness `gate/scripted/` reads `gate/proposals/scripted.json`. It does not modify the gate.
 - Scenarios that must accept pressure steps use an envelope with no cumulative bound and a high action limit. The envelope in `Program.cs` has a cumulative bound of 1.5, which refuses any pressure step above 1.5 (observation 1).
 - Markdown code fences around otherwise valid JSON are refused as SCHEMA_INVALID (case X09). E3 step 3 will show how often model output carries them.
+
+## Default context windows and silent truncation
+
+The context length in effect, as reported by `/api/ps` while each model was loaded with default settings (run 37375097339):
+
+| Model | Context length |
+|---|---|
+| llama3:latest | 4096 |
+| mistral:latest | 4096 |
+| tinyllama:latest | 2048 |
+| all-minilm:latest (embedding) | 256 |
+| mxbai-embed-large:latest (embedding) | 512 |
+
+The budget probe sent the same 16,590-character prompt (five whole pages of the AERCO text, B's shape) to each model. The prompt token counts that Ollama reported were 3550 for llama3, 2051 for mistral and 1026 for tinyllama. The tokenizers differ, but the counts for mistral and tinyllama are close to half of their windows. Ollama discards part of a prompt that exceeds the window, and a count at about half the window is what we expect after that. We have not confirmed it. The check is to count the same prompt with a larger window.
+
+Consequences for the experiments:
+
+- The `prompt_near_context_limit` flag in the pipelines (95% of the window) did not fire for mistral at 2051 of 4096 or for tinyllama at 1026 of 2048. The flag is not a reliable sign of truncation. The raw counts stay in the outputs, and an exact count is to be added.
+- B retrieves five whole pages. The pages of the Fulton manual hold 4,506 characters on average (594,808 characters over 132 pages), against 2,287 in the AERCO text (329,262 over 144). Five Fulton pages average 22,530 characters, more than the 16,590 of the probe prompt, which already used 3550 of llama3's 4096 tokens. B's default prompt on the Fulton manual is therefore expected to exceed the default window of every model in the grid. We have not measured it yet.
+- Both embedding models run with windows of 256 and 512 tokens. A page of either manual is several times longer than 256 tokens. If Ollama truncates input to the window, which is its default for embeddings, B embeds only the beginning of each page. We have not tested that.
+
+## Budget measurements
+
+Source: `results/run-37375097339-manual-models-budget/budget_calls.csv`. Prompts built from AERCO pages 37, 40, 43, 44 and 45. A_like is three chunks of 1000 characters (3,140 characters in the prompt). B_like is five whole pages (16,590 characters). Each prompt was sent twice. The first call is the one that matters, because the second reuses the prompt cache. `num_predict` was capped at 256, and a call that reached the cap is marked. Hardware: 4 CPUs, 15 GB, CPU only.
+
+| Model | Shape | Prompt tokens | Prompt processing (derived tokens/s) | Generated tokens | Generation (derived tokens/s) | Wall time, first call |
+|---|---|---|---|---|---|---|
+| llama3:latest | A_like | 743 | 20.16 | 108 | 7.01 | 52.3 s |
+| llama3:latest | B_like | 3550 | 18.93 | 91 | 4.51 | 207.8 s |
+| mistral:latest | A_like | 900 | 22.94 | 80 | 6.71 | 51.2 s |
+| mistral:latest | B_like | 2051 | 21.85 | 194 | 5.40 | 129.8 s |
+| tinyllama:latest | A_like | 948 | 133.07 | 256 (cap) | 39.09 | 13.7 s |
+| tinyllama:latest | B_like | 1026 | 129.31 | 256 (cap) | 38.68 | 14.6 s |
+
+The wall time of the first call is the time per question we budget with. In E1 every question retrieves different text, so the prompt cache does not help.
+
+Sizing of E1 for 40 questions and 3 repeats, 120 question runs per cell. This is arithmetic on the wall times above and not a measurement. It assumes the probe's wall time holds for real questions. The probe capped A's answers at 256 tokens, and A's default allows 2000, so A's times are a lower bound. The probe text was the AERCO manual and not the Fulton manual.
+
+| Cell | Seconds per question | Hours for 120 runs | Minutes per repeat of 40 |
+|---|---|---|---|
+| A-llama3 | 52.3 | 1.74 | 34.9 |
+| A-mistral | 51.2 | 1.71 | 34.1 |
+| A-tinyllama | 13.7 | 0.46 | 9.1 |
+| B-llama3 | 207.8 | 6.93 | 138.5 |
+| B-mistral | 129.8 | 4.33 | 86.6 |
+| B-tinyllama | 14.6 | 0.49 | 9.7 |
+| Total | | 15.65 | |
+
+The six cells fit. They do not fit in one job, because B-llama3 alone needs 6.93 hours and a hosted job is limited to six hours. The proposed run order is one job per cell and repeat, 18 jobs of at most 2.31 hours each. Repeat 1 of all six cells goes first, so that a complete grid exists after one pass, and repeats 2 and 3 follow. Within a pass the order does not matter when the jobs run in parallel.
+
+Actions minutes: the Actions API reported 0 billable milliseconds for run 37375097339, which took 15 minutes 31 seconds on the runner. The repository is public. The runner time of E1 is about 939 minutes by the arithmetic above, spread over 18 jobs.
+
+E2 model: `llama3:latest`. Its tag resolves to the original id, which mistral's does not. Its default window of 4096 held B's five-page prompt on the AERCO text, while mistral's and tinyllama's counts suggest truncation. E2 has ten cells. With llama3 at B's measured time, 3 repeats of 40 questions take 69.3 hours of runner time (23.1 hours for one repeat), again as 30 jobs of about 2.3 hours. E2e uses the other two models for its small and large cells.
+
+Larger runners: we measured one runner size only, so we cannot state a speed-up. Runner minutes are not the limit for a public repository. The limits are the six hours per job and the number of jobs that run at once, and splitting by cell and repeat addresses both. A larger runner would shorten each job only if generation and prompt processing scale with cores, which we have not measured.
+
+## Determinism
+
+With temperature 0 and seed 42, repeat 1 and repeat 2 of the same prompt gave the same number of generated tokens in five of the six pairs. The mistral B_like pair gave 194 and 256 tokens (the second reached the cap). Repeat 2 reuses the prompt cache in every pair. The cause is not established. The model answers are in the workflow artifact, and the two answers have not been compared yet.
 
 ## Which experiment tests which claim
 

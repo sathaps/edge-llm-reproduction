@@ -138,7 +138,7 @@ results/notes.md           deviations, failures, the claim-to-experiment table
 .github/workflows/         the jobs
 ```
 
-`results/summary.md` leads with the E1 table: configuration by category, retrieval hit rate and answers correct out of the number asked. It is kept current after every run and ends with a limitations section: one manual, one marker, small models on a 2-CPU runner, and a re-implementation rather than the original builds.
+`results/summary.md` leads with the E1 table: configuration by category, retrieval hit rate and answers correct out of the number asked. It is kept current after every run and ends with a limitations section: one manual, one marker, small models on a 4-CPU runner, and a re-implementation rather than the original builds.
 
 `results/notes.md` lists which experiment tests which claim of the article. If runner time is the binding limit, it states what larger runners would change in numbers of questions and repeats, from measured timings.
 

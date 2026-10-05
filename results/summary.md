@@ -2,7 +2,11 @@
 
 Every figure comes from a run recorded in this repository. No figure is estimated. Counts are n of N.
 
-Status: no E1, E2, E4 or E5 results yet. The gate results below need no model.
+Status: no E1, E2, E4 or E5 results yet. The gate results below need no model. Runner measurements for the chosen models are in `results/run-37375097339-manual-models-budget/` and are summarised in `results/notes.md`.
+
+## Runner measurements
+
+Tag resolution, context windows, speed and the per-question time budget are in `results/notes.md`. They are timing probes and not question-set results.
 
 ## E3 steps 1 and 2: gate unit tests and scripted proposals
 
@@ -11,6 +15,7 @@ No model is involved. The state reader is a stand-in with fixed values. Both ran
 | Run | Command | Result |
 |---|---|---|
 | Unit tests | `dotnet test` in `gate/tests` | 61 passed of 61, 0 failed, 0 skipped |
+| Unit tests on a hosted runner | the `gate-tests` workflow, run 37375097256 | 61 passed of 61, 0 failed, 0 skipped |
 | Scripted proposals | `dotnet run --project gate/scripted` | 57 proposals: 17 accepted, 40 refused |
 
 Scripted proposals by reason code. Inputs: `gate/proposals/scripted.json` (the eleven proposals of `gate/src/Program.cs` in order, one recheck, and boundary cases for each rule; each scenario starts a fresh gate). Per-proposal rows: `results/gate/scripted_proposals.csv`.
@@ -39,6 +44,6 @@ All 57 outcomes matched the reason code the rule predicts. Every one of the 14 r
 
 - One manual. Every result comes from a single public manual. Findings on retrieval and applicability may not carry over to manuals with other layouts.
 - One marker. A single person marks the answers. There is no agreement figure between markers. Marking is blind to configuration, but one marker's judgement on "partial" and "complete" is not checked by anyone else.
-- Small models on a 2-CPU runner. Model results come from models served by Ollama on a GitHub-hosted 2-CPU, CPU-only runner. They say nothing about larger models or other hardware. E4 figures are runner measurements, not edge-device measurements.
+- Small models on a 4-CPU runner. Model results come from models served by Ollama on a GitHub-hosted 4-CPU, 15 GB, CPU-only runner. They say nothing about larger models or other hardware. E4 figures are runner measurements, not edge-device measurements.
 - A re-implementation, not the original builds. The two pipelines are rebuilt from a written description on public material. The original builds, documents and hardware are not part of this repository. No result here was measured on them.
 - Small samples. Counts are n of N with small N per category. A difference of one or two questions is within what one reworded question could change.
