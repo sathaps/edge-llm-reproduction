@@ -1,0 +1,5 @@
+model,window,group,pages_longer_than_window,passages_available,queries,hit_top5,hit_top1
+all-minilm:latest,256,inside,109,185,150,107,83
+all-minilm:latest,256,beyond,109,350,150,53,16
+mxbai-embed-large:latest,512,inside,72,303,150,103,67
+mxbai-embed-large:latest,512,beyond,72,141,141,61,22

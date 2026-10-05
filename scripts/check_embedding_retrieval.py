@@ -36,7 +36,8 @@ def load_pages(pages_dir):
     out = []
     for path in sorted(glob.glob(f"{pages_dir}/*.txt")):
         text = re.sub(r"\s+", " ", open(path).read()).strip()
-        out.append((int(os.path.basename(path).split(".")[0]), text))
+        if len(text) >= 20:  # pages with no text (drawings) have nothing to embed
+            out.append((int(os.path.basename(path).split(".")[0]), text))
     return out
 
 

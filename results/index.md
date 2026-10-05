@@ -10,6 +10,7 @@ Every table in `results/summary.md` and every measured table in `results/notes.m
 | `embedding-truncation` | Check 2: full page against page cut to the window (notes) | 37380524685, job `embed`. Run 37382524262 repeated the check, its `embed` job failed while installing Ollama and gave no result | de753aa | `results/run-37380524685-truncation-checks/` |
 | `mistral-tags` | Search for a mistral tag with the original id (notes) | 37379679812 and 37380524685, job `tags` | 6588afa, de753aa | `results/run-37380524685-truncation-checks/` |
 | `prompt-survival` | Which part of an over-long prompt the model sees | 37385231341 (`survival-retrieval`), pending | 895c4ed | to come |
-| `embedding-retrieval` | Retrieval of passages beyond the embedding window | pending. The first attempt, job `retrieval` of 37385231341, failed because the legacy endpoint refuses long input (see notes) | | to come |
+| `embedding-retrieval` | Retrieval of passages beyond the embedding window (notes) | 37386511987, job `retrieval`. The first attempt (37385231341) failed because the legacy endpoint refuses long input. A rerun on the Cummins manual (37389480081) failed on pages without text and is not a result | 2ed114f | `results/run-37386511987-survival-retrieval/` |
+| `period-ollama` | Legacy endpoint and embedding truncation on Ollama 0.3.14 (notes, check 3) | 37387498181, job `embeddings` | 93573ef | `results/run-37387498181-ollama-period/` |
 
 Runs that failed or were cancelled stay listed in the notes with the reason. Development-container runs are debugging runs and are never listed here as results.

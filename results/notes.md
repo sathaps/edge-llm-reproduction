@@ -176,3 +176,17 @@ Embedding truncation on 20 sampled pages (full page against the longest prefix t
 | mxbai-embed-large | 0.3.14 | 512 (assumed) | 13 of 20 | 615, 512 | 1.0 / 0.77694 | 0.797955 |
 
 The cut counts are the same. The vectors differ slightly between releases: with 0.3.14 the full page and its prefix are less alike (median 0.995 against 0.9999 for all-minilm, minimum 0.79 against 0.99). The pages sampled in the two runs come from the same manual with the same rule, but the check does not control for the difference in tokenization or normalization between the releases, so we report the difference and do not explain it.
+
+
+## Retrieval consequence of the embedding window
+
+Run 37386511987 (commit 2ed114f, Ollama 0.35.1, Fulton manual). Each page has one vector, as in B. A page is cut into passages of three sentences. A passage is inside when it lies wholly within the longest prefix of its page that fits the window, and beyond when it starts after that prefix. Each passage is queried with its own first sentence, and a query is a hit when its page is among the five nearest page vectors. Up to 150 passages per group, drawn with seed 42, from pages longer than the window. Queries whose sentence also occurs on another page are left out.
+
+| Model | Window | Pages longer than the window | Group | Queries | Page in top 5 | Page first |
+|---|---|---|---|---|---|---|
+| all-minilm | 256 | 109 | inside | 150 | 107 of 150 | 83 of 150 |
+| all-minilm | 256 | 109 | beyond | 150 | 53 of 150 | 16 of 150 |
+| mxbai-embed-large | 512 | 72 | inside | 150 | 103 of 150 | 67 of 150 |
+| mxbai-embed-large | 512 | 72 | beyond | 141 | 61 of 141 | 22 of 141 |
+
+B uses all-minilm, so a passage that lies beyond the first 256 tokens of its page is found in the top 5 in 53 of 150 queries, against 107 of 150 for a passage inside the window, and in the first place in 16 of 150 against 83 of 150. A passage beyond the window is still found about a third of the time, because the page vector holds the beginning of the page and neighbouring text shares words. The result comes from the Fulton manual. The job failed on the Cummins manual (run 37389480081) because pages without text give an empty input, which the script now skips.
