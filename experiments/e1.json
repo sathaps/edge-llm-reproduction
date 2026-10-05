@@ -1,0 +1,12 @@
+{
+  "id": "e1",
+  "repeats": 3,
+  "cells": [
+    { "id": "A-llama3", "impl": "a", "model": "llama3:latest" },
+    { "id": "A-mistral", "impl": "a", "model": "mistral:latest" },
+    { "id": "A-tinyllama", "impl": "a", "model": "tinyllama:latest" },
+    { "id": "B-llama3", "impl": "b", "model": "llama3:latest" },
+    { "id": "B-mistral", "impl": "b", "model": "mistral:latest" },
+    { "id": "B-tinyllama", "impl": "b", "model": "tinyllama:latest" }
+  ]
+}

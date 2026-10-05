@@ -1,0 +1,45 @@
+name: e1
+on:
+  workflow_dispatch:
+
+jobs:
+  cell:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { cell: A-llama3,    model: "llama3:latest",    embed: "mxbai-embed-large:latest" }
+          - { cell: A-mistral,   model: "mistral:latest",   embed: "mxbai-embed-large:latest" }
+          - { cell: A-tinyllama, model: "tinyllama:latest", embed: "mxbai-embed-large:latest" }
+          - { cell: B-llama3,    model: "llama3:latest",    embed: "all-minilm:latest" }
+          - { cell: B-mistral,   model: "mistral:latest",   embed: "all-minilm:latest" }
+          - { cell: B-tinyllama, model: "tinyllama:latest", embed: "all-minilm:latest" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: pip install numpy pypdf
+      - name: Install Ollama and pull models
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          for i in $(seq 1 30); do curl -s localhost:11434/api/version && break; sleep 1; done
+          ollama pull "${{ matrix.model }}"
+          ollama pull "${{ matrix.embed }}"
+      - name: Fetch the manual
+        run: |
+          read -r name url < <(grep -v '^#' manuals/chosen.txt | head -n 1)
+          curl -fsSL -o manual.pdf "$url"
+          sha256sum manual.pdf | tee manual.sha256
+      - name: Run the cell, three repeats
+        run: python3 scripts/run_experiment.py experiments/e1.json --pdf manual.pdf --out results/e1 --cell "${{ matrix.cell }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e1-${{ matrix.cell }}
+          path: |
+            results/e1
+            manual.sha256
+            !results/e1/_build_b

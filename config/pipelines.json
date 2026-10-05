@@ -1,0 +1,32 @@
+{
+  "common": {
+    "temperature": 0,
+    "seed": 42
+  },
+  "a": {
+    "embedding_model": "mxbai-embed-large",
+    "chunking": { "kind": "sentence_groups", "max_chars": 1000 },
+    "retrieval": { "top_k": 3, "min_score": null },
+    "grounding": {
+      "system": "You are a helpful assistant that is an expert at extracting the most useful information from a given text. Also bring in extra relevant information to the user query from outside the given context."
+    },
+    "query_rewriting": {
+      "from_turn": 2,
+      "history_messages": 2,
+      "template": "Rewrite the following query by incorporating relevant context from the conversation history.\nThe rewritten query should:\n\n- Preserve the core intent and meaning of the original query\n- Expand and clarify the query to make it more specific and informative for retrieving relevant context\n- Avoid introducing new topics or queries that deviate from the original query\n- DONT EVER ANSWER the Original query, but instead focus on rephrasing and expanding it into a new query\n\nReturn ONLY the rewritten query text, without any additional formatting or explanations.\n\nConversation History:\n{history}\n\nOriginal query: [{question}]\n\nRewritten query: "
+    },
+    "generation": { "max_tokens": 2000, "stop": null, "shortest_answer": false }
+  },
+  "b": {
+    "embedding_model": "all-minilm",
+    "chunking": { "kind": "page" },
+    "retrieval": { "top_k": 5, "max_distance": null },
+    "grounding": {
+      "template": "Use the following pieces of context to answer the question at the end. If the answer is not in context then just say that you don't know, don't try to make up an answer.\n{shortest_line}\n\n{context}\n\nQuestion: {question}\nHelpful Answer:",
+      "shortest_line": "Keep the answer as short as possible."
+    },
+    "query_rewriting": null,
+    "generation": { "max_tokens": null, "stop": ["\n"], "shortest_answer": true },
+    "vector_store": { "collection_dimensions": 1536 }
+  }
+}

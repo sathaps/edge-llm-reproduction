@@ -1,0 +1,87 @@
+name: manual-models-budget
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/manual-models-budget.yml
+      - scripts/manual_probe.py
+      - scripts/budget_probe.py
+      - scripts/models_resolve.py
+      - scripts/runner_probe.sh
+      - manuals/candidates.txt
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Runner specs
+        run: |
+          mkdir -p out
+          { echo "date_utc: $(date -u +%FT%TZ)"; echo "commit: $GITHUB_SHA"; echo "--- nproc"; nproc; echo "--- free -g"; free -g;
+            lscpu | grep -E 'Model name|^CPU\(s\)'; } | tee out/env.txt
+
+      - name: Verify manual candidates
+        run: |
+          which pdftotext pdfinfo || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
+          grep -v '^#' manuals/candidates.txt | while read -r name url; do
+            [ -z "$name" ] && continue
+            echo "################ $name"
+            python3 scripts/manual_probe.py "out/manuals/$name" "$url"
+          done
+          python3 - <<'PY' | tee out/manuals/primary.txt
+          import json, glob, os
+          best = None
+          for d in sorted(glob.glob("out/manuals/*/provenance.json")):
+              p = json.load(open(d))
+              if p.get("is_pdf") and p.get("pages", 0) >= 100 and p.get("total_chars", 0) > 50000:
+                  best = best or os.path.dirname(d)
+          print(best or "NONE")
+          PY
+
+      - name: Install Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          for i in $(seq 1 30); do curl -s localhost:11434/api/version && break; sleep 1; done
+          echo "ollama_version: $(ollama --version 2>&1 | tail -1)" | tee -a out/env.txt
+          env | grep -i '^OLLAMA' | tee -a out/env.txt || echo "no OLLAMA_* env vars set" | tee -a out/env.txt
+          systemctl show ollama -p Environment | tee -a out/env.txt
+
+      - name: Pull models and compare ids
+        run: |
+          for m in llama3:latest mistral:latest tinyllama:latest mxbai-embed-large:latest all-minilm:latest mistral:7b; do
+            ollama pull "$m" || echo "PULL FAILED $m"
+          done
+          ollama list | tee out/ollama_list.txt
+          python3 scripts/models_resolve.py out/models
+
+      - name: Setup probes, one-line prompt
+        continue-on-error: true
+        run: |
+          for m in llama3:latest mistral:latest tinyllama:latest; do scripts/runner_probe.sh "$m" out/probe; done
+
+      - name: Budget probe with manual text
+        run: |
+          primary=$(cat out/manuals/primary.txt)
+          if [ "$primary" = "NONE" ]; then echo "no manual with 100 or more pages and extractable text"; exit 1; fi
+          echo "budget prompts built from $primary"
+          python3 scripts/budget_probe.py "$primary/pages" out/budget llama3:latest mistral:latest tinyllama:latest
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manual-models-budget
+          path: |
+            out/env.txt
+            out/ollama_list.txt
+            out/models/
+            out/probe/
+            out/budget/
+            out/manuals/primary.txt
+            out/manuals/*/provenance.json
+            out/manuals/*/cover.txt
+            out/manuals/*/licence.txt
+            out/manuals/*/applicability.txt

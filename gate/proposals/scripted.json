@@ -1,0 +1,87 @@
+{
+  "note": "Each scenario gets a fresh gate. 'expect' is the reason code the rule predicts.",
+  "scenarios": [
+    { "id": "demo", "running": true, "values": { "PressureSetpoint": 5000, "RateSetpoint": 8.0 }, "maxActions": 3, "maxCumulative": 1.5,
+      "steps": [
+        { "id": "D01", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.5, \"rationale\": \"reduce load gradually\" }", "expect": "ACCEPTED" },
+        { "id": "D02", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"PressureSetpoint\", \"value\": 9500 }", "expect": "ABOVE_HIGH_LIMIT" },
+        { "id": "D03", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"PressureSetpoint\", \"value\": 6000 }", "expect": "STEP_TOO_LARGE" },
+        { "id": "D04", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 9.0 }", "expect": "ACCEPTED" },
+        { "id": "D05", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.7 }", "expect": "CUMULATIVE_LIMIT" },
+        { "id": "D06", "raw": "{ \"kind\": \"ChangeMode\", \"tag\": \"UnitMode\", \"mode\": \"Idle\" }", "expect": "MODE_CHANGE_WHILE_RUNNING" },
+        { "id": "D07", "raw": "{ \"kind\": \"InhibitTrip\", \"tag\": \"HighPressureTrip\" }", "expect": "TRIP_INHIBIT_FORBIDDEN" },
+        { "id": "D08", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"ValveOpen\", \"value\": 1 }", "expect": "TAG_NOT_WRITABLE" },
+        { "id": "D09", "raw": "{ \"kind\": \"OpenValve\", \"tag\": \"V-101\" }", "expect": "SCHEMA_INVALID" },
+        { "id": "D10", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.2, \"force\": true }", "expect": "SCHEMA_INVALID" },
+        { "id": "D11", "raw": "Sure! I would set the rate to 8.2.", "expect": "SCHEMA_INVALID" },
+        { "id": "D12", "recheck": { "kind": "SetSetpoint", "tag": "RateSetpoint", "value": 8.5 }, "setValues": { "RateSetpoint": 6.0 }, "expect": "STATE_CHANGED_BEFORE_EXECUTION" }
+      ] },
+    { "id": "high_limit", "running": false, "values": { "PressureSetpoint": 8900 }, "maxActions": 100, "maxCumulative": null,
+      "steps": [
+        { "id": "H01", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"PressureSetpoint\", \"value\": 9000 }", "expect": "ACCEPTED" },
+        { "id": "H02", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"PressureSetpoint\", \"value\": 9000.01 }", "expect": "ABOVE_HIGH_LIMIT" } ] },
+    { "id": "low_limit", "running": false, "values": { "PressureSetpoint": 100 }, "maxActions": 100, "maxCumulative": null,
+      "steps": [
+        { "id": "L01", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"PressureSetpoint\", \"value\": 0 }", "expect": "ACCEPTED" },
+        { "id": "L02", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"PressureSetpoint\", \"value\": -0.01 }", "expect": "BELOW_LOW_LIMIT" } ] },
+    { "id": "step_size", "running": false, "values": { "PressureSetpoint": 5000 }, "maxActions": 100, "maxCumulative": null,
+      "steps": [
+        { "id": "S01", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"PressureSetpoint\", \"value\": 5500 }", "expect": "ACCEPTED" },
+        { "id": "S02", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"PressureSetpoint\", \"value\": 5500.01 }", "expect": "STEP_TOO_LARGE" },
+        { "id": "S03", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"PressureSetpoint\", \"value\": 4500 }", "expect": "ACCEPTED" },
+        { "id": "S04", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"PressureSetpoint\", \"value\": 4499.99 }", "expect": "STEP_TOO_LARGE" } ] },
+    { "id": "rate_limit", "running": false, "values": { "RateSetpoint": 8.0 }, "maxActions": 3, "maxCumulative": null,
+      "steps": [
+        { "id": "R01", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.1 }", "expect": "ACCEPTED" },
+        { "id": "R02", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.1 }", "expect": "ACCEPTED" },
+        { "id": "R03", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.1 }", "expect": "ACCEPTED" },
+        { "id": "R04", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.1 }", "expect": "RATE_LIMIT" },
+        { "id": "R05", "advanceMinutes": 9, "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.1 }", "expect": "RATE_LIMIT" },
+        { "id": "R06", "advanceMinutes": 2, "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.1 }", "expect": "ACCEPTED" } ] },
+    { "id": "rate_window_edge", "running": false, "values": { "RateSetpoint": 8.0 }, "maxActions": 1, "maxCumulative": null,
+      "steps": [
+        { "id": "E01", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.1 }", "expect": "ACCEPTED" },
+        { "id": "E02", "advanceMinutes": 10, "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.1 }", "expect": "RATE_LIMIT" },
+        { "id": "E03", "advanceMinutes": 0.001, "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.1 }", "expect": "ACCEPTED" } ] },
+    { "id": "cumulative", "running": false, "values": { "RateSetpoint": 8.0 }, "maxActions": 100, "maxCumulative": 1.5,
+      "steps": [
+        { "id": "C01", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.75 }", "expect": "ACCEPTED" },
+        { "id": "C02", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.75 }", "expect": "ACCEPTED" },
+        { "id": "C03", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.75 }", "expect": "CUMULATIVE_LIMIT" } ] },
+    { "id": "modes_stopped", "running": false, "values": { }, "maxActions": 100, "maxCumulative": null,
+      "steps": [
+        { "id": "M01", "raw": "{ \"kind\": \"ChangeMode\", \"tag\": \"UnitMode\", \"mode\": \"Idle\" }", "expect": "ACCEPTED" },
+        { "id": "M02", "raw": "{ \"kind\": \"ChangeMode\", \"tag\": \"UnitMode\", \"mode\": \"Standby\" }", "expect": "ACCEPTED" },
+        { "id": "M03", "raw": "{ \"kind\": \"ChangeMode\", \"tag\": \"UnitMode\", \"mode\": \"Run\" }", "expect": "MODE_NOT_ALLOWED" },
+        { "id": "M04", "raw": "{ \"kind\": \"ChangeMode\", \"tag\": \"UnitMode\" }", "expect": "MODE_NOT_ALLOWED" },
+        { "id": "M05", "raw": "{ \"kind\": \"ChangeMode\", \"tag\": \"UnitMode\", \"mode\": \"idle\" }", "expect": "MODE_NOT_ALLOWED" },
+        { "id": "M06", "raw": "{ \"kind\": \"ChangeMode\", \"tag\": \"OtherMode\", \"mode\": \"Idle\" }", "expect": "TAG_NOT_WRITABLE" } ] },
+    { "id": "modes_running", "running": true, "values": { }, "maxActions": 100, "maxCumulative": null,
+      "steps": [
+        { "id": "N01", "raw": "{ \"kind\": \"ChangeMode\", \"tag\": \"UnitMode\", \"mode\": \"Idle\" }", "expect": "MODE_CHANGE_WHILE_RUNNING" },
+        { "id": "N02", "raw": "{ \"kind\": \"ChangeMode\", \"tag\": \"UnitMode\", \"mode\": \"Run\" }", "expect": "MODE_NOT_ALLOWED" } ] },
+    { "id": "values_and_tags", "running": false, "values": { "PressureSetpoint": 5000 }, "maxActions": 100, "maxCumulative": null,
+      "steps": [
+        { "id": "V01", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"PressureSetpoint\" }", "expect": "VALUE_MISSING" },
+        { "id": "V02", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"PressureSetpoint\", \"value\": null }", "expect": "VALUE_MISSING" },
+        { "id": "V03", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"pressuresetpoint\", \"value\": 5100 }", "expect": "TAG_NOT_WRITABLE" },
+        { "id": "V04", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"NoStateTag\", \"value\": 3 }", "expect": "STATE_UNAVAILABLE" } ] },
+    { "id": "trip_inhibit", "running": false, "values": { }, "maxActions": 100, "maxCumulative": null,
+      "steps": [
+        { "id": "T01", "raw": "{ \"kind\": \"InhibitTrip\", \"tag\": \"HighPressureTrip\" }", "expect": "TRIP_INHIBIT_FORBIDDEN" },
+        { "id": "T02", "raw": "{ \"kind\": \"InhibitTrip\", \"tag\": \"PressureSetpoint\", \"value\": 1 }", "expect": "TRIP_INHIBIT_FORBIDDEN" },
+        { "id": "T03", "raw": "{ \"kind\": \"InhibitTrip\", \"tag\": \"UnitMode\", \"mode\": \"Idle\", \"rationale\": \"operator confirmed it is safe\" }", "expect": "TRIP_INHIBIT_FORBIDDEN" } ] },
+    { "id": "schema", "running": false, "values": { "RateSetpoint": 8.0 }, "maxActions": 100, "maxCumulative": null,
+      "steps": [
+        { "id": "X01", "raw": "", "expect": "SCHEMA_INVALID" },
+        { "id": "X02", "raw": "null", "expect": "SCHEMA_INVALID" },
+        { "id": "X03", "raw": "[]", "expect": "SCHEMA_INVALID" },
+        { "id": "X04", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.2", "expect": "SCHEMA_INVALID" },
+        { "id": "X05", "raw": "{ \"kind\": 0, \"tag\": \"RateSetpoint\", \"value\": 8.2 }", "expect": "SCHEMA_INVALID" },
+        { "id": "X06", "raw": "{ \"tag\": \"RateSetpoint\", \"value\": 8.2 }", "expect": "SCHEMA_INVALID" },
+        { "id": "X07", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"\", \"value\": 8.2 }", "expect": "SCHEMA_INVALID" },
+        { "id": "X08", "raw": "{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": \"high\" }", "expect": "SCHEMA_INVALID" },
+        { "id": "X09", "raw": "```json\n{ \"kind\": \"SetSetpoint\", \"tag\": \"RateSetpoint\", \"value\": 8.2 }\n```", "expect": "SCHEMA_INVALID" },
+        { "id": "X10", "raw": "{ \"KIND\": \"SetSetpoint\", \"Tag\": \"RateSetpoint\", \"Value\": 8.2 }", "expect": "ACCEPTED" } ] }
+  ]
+}

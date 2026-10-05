@@ -1,0 +1,6 @@
+# name url
+# Civilian candidates first, in order of preference. The military fallback is last.
+aerco_benchmark_5000_6000 https://www.aerco.com/dfsmedia/0533dbba17714b1ab581ab07a4cbb521/82016-source/638235481930000000/benchmark-5000-6000-iom-manual-omm-0124-gf-208-n-19-0001-and-above.pdf
+fulton_endura_xe https://fulton.com/app/uploads/2024/10/EXE-399-6000-IOM-260706.pdf
+cummins_onan_hdkag https://www.cummins.com/sites/default/files/2024-10/0981-0149-i12-hdkag-ops-manual.pdf
+army_tm_9_6115_464_12 https://manuals.chudov.com/Military-Generators/MEP-004A/TM-9-6115-464-12.pdf

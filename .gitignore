@@ -1,0 +1,6 @@
+bin/
+obj/
+gate_audit.jsonl
+*.jsonl.tmp
+__pycache__/
+.pytest_cache/

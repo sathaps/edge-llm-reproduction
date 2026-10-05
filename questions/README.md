@@ -1,0 +1,18 @@
+# Question set
+
+`questions.csv` has the columns of `questions.template.csv`. `scoring/questions.py` validates it.
+
+| Column | Content |
+|---|---|
+| `id` | unique, for example `sp-01` |
+| `category` | `self_contained`, `condition_dependent`, `applicability`, `unanswerable`, `table_lookup` |
+| `question` | worded the way an operator asks it |
+| `reference_answer` | the correct answer, from the manual |
+| `source_pages` | PDF page numbers that hold the answer, for example `12;14-15`. Empty for `unanswerable`. |
+| `exclusion_pages` | applicability questions only: the pages that state the exclusion |
+| `required_elements` | what a correct answer must contain, separated by `\|` |
+| `verified_by`, `verified_on` | filled in by the person who checked the reference answer against the manual |
+
+A question with an empty `verified_by` is excluded from scoring.
+
+Target: 8 questions per category. Minimum: 5 self-contained, 5 condition-dependent, 5 applicability, 4 unanswerable, 3 table lookup.

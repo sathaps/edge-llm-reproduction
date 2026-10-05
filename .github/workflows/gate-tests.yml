@@ -1,0 +1,29 @@
+name: gate-tests
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - gate/**
+      - .github/workflows/gate-tests.yml
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Runner specs
+        run: |
+          { echo "nproc: $(nproc)"; free -g; } | tee env.txt
+      - run: dotnet test gate/tests --logger "trx;LogFileName=gate-tests.trx"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gate-tests
+          path: |
+            env.txt
+            gate/tests/TestResults/

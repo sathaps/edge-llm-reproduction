@@ -1,0 +1,1 @@
+`candidates.txt` lists the manuals under consideration, one `name url` per line. `chosen.txt` holds the one manual that experiments use, in the same format. Manuals are fetched from their public URL in the job and are never committed.
