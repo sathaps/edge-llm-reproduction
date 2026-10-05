@@ -71,3 +71,14 @@ def test_cell_filter_runs_only_the_named_cells(pdf_path, url, stub, tmp_path):
     assert not (out / "A-x").exists()
     with pytest.raises(SystemExit):
         rx.main([str(exp), "--pdf", str(pdf_path), "--out", str(out), "--ollama", url, "--cell", "nope"])
+
+
+def test_rep_filter_runs_only_the_named_repeats(pdf_path, url, stub, tmp_path):
+    q = tmp_path / "q.csv"
+    q.write_text("id,question\nq1,How do I start the unit?\n")
+    exp = tmp_path / "exp.json"
+    exp.write_text(json.dumps({"id": "t", "repeats": 3, "cells": [{"id": "A-x", "impl": "a", "model": "llama3:latest"}]}))
+    out = tmp_path / "res"
+    assert rx.main([str(exp), "--pdf", str(pdf_path), "--out", str(out), "--ollama", url, "--questions", str(q), "--rep", "2", "--rep", "3"]) == 0
+    assert [r["rep"] for r in csv.DictReader(open(out / "resources.csv"))] == ["2", "3"]
+    assert not (out / "A-x" / "rep-1").exists()

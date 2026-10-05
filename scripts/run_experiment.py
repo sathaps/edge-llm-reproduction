@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run the cells of an experiment, each repeated, and record peak memory per run.
 
-usage: run_experiment.py experiments/e1.json --pdf MANUAL.pdf --out results/e1 [--ollama URL] [--questions CSV] [--cell ID ...]
+usage: run_experiment.py experiments/e1.json --pdf MANUAL.pdf --out results/e1 [--ollama URL] [--questions CSV] [--cell ID ...] [--rep N ...]
 
 An experiment file lists cells: {"id", "impl": "a"|"b", "model", "set": ["path=value", ...], "conversation"}.
 Output: <out>/env.txt, <out>/<cell>/rep-N/ (the pipeline's files) and <out>/resources.csv.
@@ -118,6 +118,7 @@ def main(argv=None):
     ap.add_argument("--ollama", default="http://localhost:11434")
     ap.add_argument("--questions", default="questions/questions.csv")
     ap.add_argument("--cell", action="append", help="run only this cell; repeatable")
+    ap.add_argument("--rep", action="append", type=int, help="run only this repeat number; repeatable")
     args = ap.parse_args(argv)
 
     exp = json.load(open(args.experiment))
@@ -132,7 +133,7 @@ def main(argv=None):
 
     rows = []
     for cell in exp["cells"]:
-        for rep in range(1, exp.get("repeats", 3) + 1):
+        for rep in args.rep or range(1, exp.get("repeats", 3) + 1):
             rep_dir = out / cell["id"] / f"rep-{rep}"
             rep_dir.mkdir(parents=True, exist_ok=True)
             code, wall, pipe_kb, ollama_kb = run_sampled(pipeline_command(cell, args, rep_dir, b_dll), cwd=ROOT,

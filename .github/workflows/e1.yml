@@ -1,21 +1,42 @@
 name: e1
 on:
   workflow_dispatch:
+    inputs:
+      reps:
+        description: "Repeat numbers to run, for example 1 or 2,3"
+        default: "1"
+  push:
+    branches: [main]
+    paths:
+      - experiments/e1_request.json
 
 jobs:
-  cell:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: matrix
+        env:
+          INPUT_REPS: ${{ inputs.reps }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          reps = [int(r) for r in os.environ["INPUT_REPS"].split(",")] if os.environ.get("INPUT_REPS") else json.load(open("experiments/e1_request.json"))["reps"]
+          cells = json.load(open("experiments/e1.json"))["cells"]
+          embed = {"a": "mxbai-embed-large:latest", "b": "all-minilm:latest"}
+          include = [{"cell": c["id"], "model": c["model"], "embed": embed[c["impl"]], "rep": r} for r in reps for c in cells]
+          print("matrix=" + json.dumps({"include": include}))
+          PY
+
+  run:
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 350
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - { cell: A-llama3,    model: "llama3:latest",    embed: "mxbai-embed-large:latest" }
-          - { cell: A-mistral,   model: "mistral:latest",   embed: "mxbai-embed-large:latest" }
-          - { cell: A-tinyllama, model: "tinyllama:latest", embed: "mxbai-embed-large:latest" }
-          - { cell: B-llama3,    model: "llama3:latest",    embed: "all-minilm:latest" }
-          - { cell: B-mistral,   model: "mistral:latest",   embed: "all-minilm:latest" }
-          - { cell: B-tinyllama, model: "tinyllama:latest", embed: "all-minilm:latest" }
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -33,12 +54,12 @@ jobs:
           read -r name url < <(grep -v '^#' manuals/chosen.txt | head -n 1)
           curl -fsSL -o manual.pdf "$url"
           sha256sum manual.pdf | tee manual.sha256
-      - name: Run the cell, three repeats
-        run: python3 scripts/run_experiment.py experiments/e1.json --pdf manual.pdf --out results/e1 --cell "${{ matrix.cell }}"
+      - name: Run the cell
+        run: python3 scripts/run_experiment.py experiments/e1.json --pdf manual.pdf --out results/e1 --cell "${{ matrix.cell }}" --rep "${{ matrix.rep }}"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: e1-${{ matrix.cell }}
+          name: e1-${{ matrix.cell }}-rep${{ matrix.rep }}
           path: |
             results/e1
             manual.sha256
