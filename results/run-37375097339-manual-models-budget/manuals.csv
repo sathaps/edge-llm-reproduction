@@ -1,0 +1,5 @@
+candidate,source_url,http,size_bytes,sha256,pages,total_chars,pages_under_200_chars,pdf_producer,pdf_date
+aerco_benchmark_5000_6000,https://www.aerco.com/dfsmedia/0533dbba17714b1ab581ab07a4cbb521/82016-source/638235481930000000/benchmark-5000-6000-iom-manual-omm-0124-gf-208-n-19-0001-and-above.pdf,200 application/pdf,4207618,df0eb03ed878dd9de7c063a71f137241901c92d7fe2b017b8df9562aac11b675,144,329262,1,Microsoft Word for Microsoft 365,2022-05-03
+fulton_endura_xe,https://fulton.com/app/uploads/2024/10/EXE-399-6000-IOM-260706.pdf,200 application/pdf,14443052,567d20d51cca6e8230c950eb4f32325c2f8ebc1c67946d7f1acf74e3b68378ab,132,594808,2,Adobe PDF Library 17.0,2026-07-06
+cummins_onan_hdkag,https://www.cummins.com/sites/default/files/2024-10/0981-0149-i12-hdkag-ops-manual.pdf,200 application/pdf,569332,7316152ea53d18d0ff4e65acf9d8f944a82464608a844d96e81809ba65da0665,44,101689,10,Acrobat Distiller 19.0,2024-09-06
+army_tm_9_6115_464_12,https://manuals.chudov.com/Military-Generators/MEP-004A/TM-9-6115-464-12.pdf,200 application/pdf,3205237,41848ede74e77553d4c2c3fee373ea6a06d2f0bb699f26b5ea7aaf825f8d861c,365,767295,39,Acrobat PDFWriter 2.01,1996-07-19

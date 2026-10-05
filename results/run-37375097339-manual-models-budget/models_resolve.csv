@@ -1,0 +1,8 @@
+tag,expected_id,actual_id,matches,size_bytes
+llama3:latest,365c0bd3c000,365c0bd3c000,yes,4661224676
+mistral:latest,f974a74358d6,6577803aa9a0,no,4372824384
+tinyllama:latest,2644915ede35,2644915ede35,yes,637700138
+mxbai-embed-large:latest,468836162de7,468836162de7,yes,669615493
+all-minilm:latest,1b226e2802db,1b226e2802db,yes,45960996
+mistral:7b,,6577803aa9a0,n/a,4372824384
+llama3.2:3b,,NOT_PULLED,n/a,
