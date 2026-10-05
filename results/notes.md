@@ -144,3 +144,10 @@ Claim wording is taken from `PROTOCOL.md`. A claim that misstates the article is
 ## Known open issue: intermittent failure in the stub-based .NET tests
 
 In full runs of the Python test suite, one .NET test fails now and then with `System.Net.Http.HttpIOException: The response ended prematurely` while talking to `tools/stub_ollama.py`. We have seen it in about 4 of roughly 25 full runs, in different tests each time (`tests/test_pipeline_b.py::test_answers_carry_token_counts_and_context`, `tests/test_pipeline_b.py::test_prompt_stop_and_determinism`, `tests/test_gate_modelrun.py::test_counts_for_the_operator_requests`). Each of these passes when run alone, and a loop of one test passed 12 of 12. A loop of the two .NET test modules failed 3 of 10 runs, so the trigger is a sequence of runs and not one test. The cause is not established. The stub answers over HTTP/1.0 and closes the connection after each reply, and the .NET client may be reusing a connection the stub has just closed. We have not tested that. The failure affects only the stub and the tests. No result in this repository depends on the stub, and no workflow runs the Python tests.
+
+
+## Primary manual: pages with garbled text
+
+The primary manual (Cummins fire pump drive engine CFP11E, Doc. A042J562 Rev. 1, SHA-256 `a6a8ea25b6ea6e3b…`, 155 pages) uses fonts without a Unicode map on some pages. `pdftotext`, `pypdf` and PdfPig all return glyph codes instead of letters on these pages. The text is shifted by a constant, so it can be decoded, but neither pipeline decodes it. Pages with garbled text: 4, 5, 10, 15, 16, 28, 73, 96 to 101, 103 to 110, 115 and 151 to 155 (26 of 155). Pages 117 to 149 hold drawings without text. The troubleshooting section (96 to 110) falls in the garbled range, so neither pipeline can retrieve it.
+
+We drew no question from these pages. Retrieval and answers on them are zero by construction, and the notes keep this as a property of the manual and of PDF text extraction. Counts: structure scan of run 37387867205 and a local extraction check.
