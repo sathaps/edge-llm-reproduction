@@ -27,7 +27,7 @@ def runs_from(args):
 def main(argv):
     cmd, rest = argv[0], argv[1:]
     if cmd == "validate":
-        errs, warns = questions.validate(questions.read_questions(rest[0]))
+        errs, warns = questions.validate(questions.read_questions(rest[0]), "--no-minimums" not in rest)
         for w in warns:
             print("warning:", w)
         for e in errs:

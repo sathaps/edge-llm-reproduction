@@ -12,8 +12,9 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
 
-COLUMNS = ["id", "category", "question", "reference_answer", "source_pages", "exclusion_pages", "required_elements", "passage"]
-VERDICTS = "correct,needs correction,question unclear,reject"
+COLUMNS = ["id", "set", "category", "question", "reference_answer", "source_pages", "exclusion_pages", "required_elements",
+           "forbidden_elements", "passage"]
+VERDICTS = "ok,fix,drop"
 
 
 def main(draft, out_dir):
@@ -34,7 +35,7 @@ def main(draft, out_dir):
     ws.append(header)
     for r in rows:
         ws.append([r[c] for c in COLUMNS] + ["", "", "", ""])
-    widths = {"id": 9, "category": 18, "question": 44, "reference_answer": 56, "source_pages": 12, "exclusion_pages": 12,
+    widths = {"id": 9, "set": 12, "forbidden_elements": 30, "category": 18, "question": 44, "reference_answer": 56, "source_pages": 12, "exclusion_pages": 12,
               "required_elements": 36, "passage": 80, "verdict": 18, "correction": 44, "verified_by": 14, "verified_on": 12}
     for i, name in enumerate(header, 1):
         col = ws.cell(row=1, column=i).column_letter
@@ -47,7 +48,7 @@ def main(draft, out_dir):
     dv = DataValidation(type="list", formula1=f'"{VERDICTS}"', allow_blank=True)
     ws.add_data_validation(dv)
     dv.add(f"{ws.cell(row=2, column=header.index('verdict') + 1).coordinate}:{ws.cell(row=len(rows) + 1, column=header.index('verdict') + 1).coordinate}")
-    ws.freeze_panes = "D2"
+    ws.freeze_panes = "E2"
     wb.save(f"{out_dir}/verification_pack.xlsx")
     return len(rows)
 

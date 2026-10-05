@@ -3,6 +3,9 @@
 Conventions in `required_elements` (separated by `|`):
 - an element written as `a~b` is met by either `a` or `b`;
 - the element `ABSTAIN` means the correct answer says the manual does not cover the question.
+`forbidden_elements` uses the same `|` and `~` notation. An answer that contains one of them as a whole word or phrase is
+not correct and not complete, because it states what the question excludes (the other variant's value, the steps of a
+procedure that does not apply). The scorer also reports whether the required elements first appear in the listed order.
 """
 import re
 
@@ -28,6 +31,27 @@ def required(question):
     return [e.strip() for e in (question.get("required_elements") or "").split("|") if e.strip()]
 
 
+def forbidden(question):
+    return [e.strip() for e in (question.get("forbidden_elements") or "").split("|") if e.strip()]
+
+
+def whole_phrase(answer_norm, element):
+    return any(re.search(r"(?<![\w])" + re.escape(normalise(alt)) + r"(?![\w])", answer_norm) for alt in element.split("~") if alt.strip())
+
+
+def in_order(answer_norm, elems):
+    """True when the elements that are present first appear in the order they are listed."""
+    last = -1
+    for e in elems:
+        pos = [answer_norm.find(normalise(alt)) for alt in e.split("~") if alt.strip() and normalise(alt) in answer_norm]
+        if not pos:
+            continue
+        if min(pos) < last:
+            return False
+        last = min(pos)
+    return True
+
+
 def abstained(answer):
     return bool(ABSTAIN_PATTERN.search(answer or ""))
 
@@ -46,10 +70,11 @@ def score_answer(question, answer, retrieved_text=""):
         found, total = (1 if abst else 0), 1
     else:
         found, total = sum(element_met(ans, e) for e in elems), len(elems)
-    complete = found == total and total > 0
+    banned = [e for e in forbidden(question) if whole_phrase(ans, e)]
+    complete = found == total and total > 0 and not banned
     if question["category"] == "unanswerable":
         correct = "yes" if abst else "no"
-    elif abst or found == 0:
+    elif abst or found == 0 or banned:
         correct = "no"
     elif complete:
         correct = "yes"
@@ -59,5 +84,5 @@ def score_answer(question, answer, retrieved_text=""):
     return {"correct": correct, "complete": "yes" if complete else "no",
             "respects_applicability": ("yes" if complete and not abst else "no") if question["category"] == "applicability" else "",
             "abstained": "yes" if abst else "no", "unsupported_content": "yes" if odd else "no",
-            "elements_found": f"{found} of {total}", "gave_procedure": "yes" if PROCEDURE_PATTERN.search(answer or "") else "no",
+            "elements_found": f"{found} of {total}", "forbidden_found": " | ".join(banned), "elements_in_order": "yes" if in_order(ans, elems) else "no", "gave_procedure": "yes" if PROCEDURE_PATTERN.search(answer or "") else "no",
             "numbers_not_in_context": " ".join(odd)}

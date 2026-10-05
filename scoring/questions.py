@@ -1,7 +1,8 @@
 import csv
 
 COLUMNS = ["id", "category", "question", "reference_answer", "source_pages", "exclusion_pages",
-           "required_elements", "verified_by", "verified_on"]
+           "required_elements", "forbidden_elements", "verified_by", "verified_on"]
+OPTIONAL_COLUMNS = {"forbidden_elements"}  # files written before the column existed stay valid
 MINIMUM = {"self_contained": 5, "condition_dependent": 5, "applicability": 5, "unanswerable": 4, "table_lookup": 3}
 TARGET = 8
 
@@ -29,10 +30,10 @@ def verified(rows):
     return [r for r in rows if (r.get("verified_by") or "").strip()]
 
 
-def validate(rows):
+def validate(rows, check_counts=True):
     errors, warnings = [], []
-    if rows and set(COLUMNS) - set(rows[0]):
-        return [f"missing columns: {sorted(set(COLUMNS) - set(rows[0]))}"], []
+    if rows and set(COLUMNS) - OPTIONAL_COLUMNS - set(rows[0]):
+        return [f"missing columns: {sorted(set(COLUMNS) - OPTIONAL_COLUMNS - set(rows[0]))}"], []
     seen = set()
     for r in rows:
         qid = r["id"]
@@ -60,7 +61,12 @@ def validate(rows):
             warnings.append(f"{qid}: exclusion_pages on a non-applicability question")
         if not elements(r["required_elements"]):
             errors.append(f"{qid}: no required_elements")
-    for cat, minimum in MINIMUM.items():
+        if r["category"] == "applicability":
+            if "forbidden_elements" not in r:
+                warnings.append(f"{qid}: no forbidden_elements column")
+            elif not elements(r["forbidden_elements"]):
+                errors.append(f"{qid}: applicability question has no forbidden_elements")
+    for cat, minimum in MINIMUM.items() if check_counts else []:
         n = sum(1 for r in rows if r["category"] == cat)
         if n < minimum:
             errors.append(f"{cat}: {n} questions, minimum {minimum}")
@@ -71,7 +77,7 @@ def validate(rows):
 
 if __name__ == "__main__":
     import sys
-    errs, warns = validate(read_questions(sys.argv[1]))
+    errs, warns = validate(read_questions(sys.argv[1]), "--no-minimums" not in sys.argv)
     for w in warns:
         print("warning:", w)
     for e in errs:

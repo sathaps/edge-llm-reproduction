@@ -17,3 +17,9 @@ Unanswerable questions: `correct` is yes only when the answer abstains and does 
 A one-word or one-number answer is complete when it equals the reference. Spelling, units written another way (kPa for psi converted correctly) and word order do not matter. A wrong unit or a number that differs from the reference is no.
 
 A marker does not look up the manual to decide a doubt. The reference answer is the standard. A question the marker thinks has a wrong reference answer is noted in a separate list and decided by the maintainer before the freeze, not during marking.
+
+Forbidden elements. An applicability question lists `forbidden_elements`: the other variant's value, or the steps of a procedure that does not apply. The automatic scorer counts an answer that contains one as not correct. The marker applies the same idea: an answer that gives the excluded value or steps as if they applied to the variant asked about is `no` for `respects_applicability`, even if it also says the feature does not apply.
+
+Procedure questions. `required_elements` lists every prerequisite and every step in the order of the manual. An answer is complete only when every element is present. A step that is present but out of order makes `complete` no and, when the order changes the result, `correct` partial. The automatic scorer reports `elements_in_order` and leaves the decision to the marker.
+
+Verification of the reference answers uses the verdicts `ok`, `fix` and `drop`.

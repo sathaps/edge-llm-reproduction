@@ -4,7 +4,7 @@ import marks, retrieval_score, blind_export, questions as qmod
 
 def question(qid, cat, src="2", exc="", elems="a|b", by="x"):
     return {"id": qid, "category": cat, "question": f"question {qid}", "reference_answer": f"reference {qid}", "source_pages": src,
-            "exclusion_pages": exc, "required_elements": elems, "verified_by": by, "verified_on": "2026-01-01" if by else ""}
+            "exclusion_pages": exc, "required_elements": elems, "forbidden_elements": "z" if cat == "applicability" else "", "verified_by": by, "verified_on": "2026-01-01" if by else ""}
 
 
 def full_set(n=8):
@@ -258,7 +258,7 @@ def test_verification_pack_has_one_row_per_question_and_empty_verdict_columns(tm
         w = csv.DictWriter(f, fieldnames=mv.COLUMNS)
         w.writeheader()
         for i in range(3):
-            w.writerow({"id": f"q{i}", "category": "self_contained", "question": f"question {i}", "reference_answer": "ref",
+            w.writerow({"id": f"q{i}", "set": "main", "forbidden_elements": "x", "category": "self_contained", "question": f"question {i}", "reference_answer": "ref",
                         "source_pages": "4", "exclusion_pages": "", "required_elements": "a|b", "passage": f"passage text {i}"})
     assert mv.main(str(draft), str(tmp_path / "pack")) == 3
     wb = load_workbook(tmp_path / "pack" / "verification_pack.xlsx")
@@ -355,3 +355,28 @@ def test_freeze_manifest_detects_a_changed_file(tmp_path, monkeypatch):
     assert fm.check(tmp_path / "m") == ["a.txt: changed"]
     (tmp_path / "a.txt").unlink()
     assert fm.check(tmp_path / "m") == ["a.txt: missing"]
+
+
+def test_forbidden_elements_fail_an_answer_and_the_order_is_reported():
+    import rubric
+    q = {"category": "applicability", "question": "q", "required_elements": "345 kPa~50 psi", "forbidden_elements": "276 kPa~40 psi"}
+    assert rubric.score_answer(q, "The setting is 345 kPa.")["correct"] == "yes"
+    out = rubric.score_answer(q, "345 kPa (50 psi), where other models use 40 psi.")
+    assert out["correct"] == "no" and out["complete"] == "no" and out["respects_applicability"] == "no" and out["forbidden_found"] == "276 kPa~40 psi"
+    assert rubric.score_answer({**q, "forbidden_elements": "yes"}, "Their eyes are on 345 kPa.")["correct"] == "yes"  # whole words only
+    proc = {"category": "self_contained", "question": "q", "required_elements": "open the valve|press start|close the valve"}
+    assert rubric.score_answer(proc, "Open the valve, press START, then close the valve.")["elements_in_order"] == "yes"
+    assert rubric.score_answer(proc, "Close the valve. Press start. Open the valve.")["elements_in_order"] == "no"
+
+
+def test_validate_requires_forbidden_elements_on_applicability_rows_and_can_skip_minimums():
+    rows = [question("ap-1", "applicability", exc="4"), question("sc-1", "self_contained")]
+    rows[0]["forbidden_elements"] = ""
+    errors, _ = qmod.validate(rows, check_counts=False)
+    assert errors == ["ap-1: applicability question has no forbidden_elements"]
+    rows[0]["forbidden_elements"] = "other value"
+    assert qmod.validate(rows, check_counts=False)[0] == []
+    assert qmod.validate(rows)[0]  # the category minimums still apply by default
+    old = [{k: v for k, v in r.items() if k != "forbidden_elements"} for r in rows]
+    errors, warnings = qmod.validate(old, check_counts=False)
+    assert errors == [] and any("forbidden_elements" in w for w in warnings)

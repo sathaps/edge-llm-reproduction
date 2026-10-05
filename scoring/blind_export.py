@@ -47,7 +47,7 @@ def export(runs, questions, out_dir, seed):
         aid = f"ans-{n:04d}"
         q = qs[g["qid"]]
         blind.append({"answer_id": aid, "question": q["question"], "reference_answer": q["reference_answer"],
-                      "required_elements": q["required_elements"], "category": q["category"], "answer": g["answer"],
+                      "required_elements": q["required_elements"], "forbidden_elements": q.get("forbidden_elements", ""), "category": q["category"], "answer": g["answer"],
                       **{m: "" for m in MARKS}})
         support.append({"answer_id": aid, "retrieved_text": "\n=====\n".join(g["contexts"]), "unsupported_content": ""})
         auto.append({"answer_id": aid, **rubric.score_answer(q, g["answer"], " ".join(g["contexts"]))})
