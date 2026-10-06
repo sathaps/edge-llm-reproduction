@@ -33,3 +33,9 @@ un-07,unanswerable,Which spare parts should I keep in stock for this engine?,The
 un-08,unanswerable,What flow rate in gpm does the fire pump itself deliver?,The manual does not give the pump flow rating. It covers the engine and refers to the pump manufacturer for the pump.,,,ABSTAIN,,SA,2026-10-05 00:00:00
 tl-01,table_lookup,Which lubricating oil filter is recommended for the CFP11E?,Cummins Filtration LF14000NN.,112,,LF14000NN,,SA,2026-10-05 00:00:00
 tl-02,table_lookup,What is the minimum raw water flow with water temperatures up to 80 °F?,38.5 GPM (2.43 L/sec).,112,,38.5,,SA,2026-10-05 00:00:00
+tl-03,table_lookup,What is the maximum allowable back pressure of the complete exhaust system?,40.8 in. H2O (10.2 kPa).,112,,40.8,,SA,2026-10-05 00:00:00
+tl-04,table_lookup,What is the fuel rate at 1760 RPM?,19.1 gal/hr (72.3 L/hr).,113,,19.1~72.3,,SA,2026-10-05 00:00:00
+tl-05,table_lookup,What battery cold cranking amperes and reserve capacity are recommended for the engine?,"1400 CCA and 430 minutes of reserve capacity, based on the FM requirement of at least 900 CCA and 430 minutes.",113,,1400|430,,SA,2026-10-05 00:00:00
+tl-06,table_lookup,What is the engine output in BHP at 2100 RPM?,345 BHP (257 kW).,113,,345,,SA,2026-10-05 00:00:00
+tl-07,table_lookup,What exhaust gas temperature is specified for my CFP11E at 1470 RPM?,977 F (525 C).,113,,977~525,,SA,2026-10-05 00:00:00
+tl-08,table_lookup,"What is the nominal oil pressure at rated speed on my CFP11E, and what are the high and low oil-pan capacities?",Nominal oil pressure is 35 psi (241 kPa). The pan capacity is 36 qt (34 L) at high and 32 qt (30 L) at low.,112,,35 psi~241 kPa|36 qt~34 L|32 qt~30 L,,SA,2026-10-05 00:00:00
