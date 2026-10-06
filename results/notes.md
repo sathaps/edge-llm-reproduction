@@ -322,3 +322,28 @@ Temperature is 0 and the seed 42 in every run, and answers are still not always 
 ### Marking sheet
 
 Built from repeat 1 of the six cells (unsharded runs of record), seed 4242, in the private repository under `verification/`: 237 distinct answers of 240 (three identical answers merged). Per category: self_contained 48, condition_dependent 45, applicability 48, unanswerable 48, table_lookup 48. One tab, 40 questions. Key file SHA-256, recorded before marking: `a9801bfe50c5f961da2170e68e1a7aa27866ad94c9e8ac645f48068e8886136c`. The second-marker sample has 60 answers: 12 per category and 10 per cell, seed 7. The check script accepts a filled copy of the real sheet and of the sample, and refuses a copy with an empty cell or a value outside the lists, naming the rows. No sheet cell names a model, a cell, a run or a retrieved page.
+
+
+## E2 collection and gate (12:45 UTC)
+
+Run 37413659604 (`e2`, commit 6bc6729, parameters in `experiments/e2_params.json`, Amendment 6). Cells of B on llama3 ran as 4 shards, E2e-large as 2 shards, E2e-small and E2f-rewriting unsharded (Amendment 7). Collected into `results/e2/` and merged with `scripts/merge_shards.py`. The run was still going at 12:31. 13 of the 15 cells are complete in all three repeats. E2e-large repeat 3 (one of two shards) and E2f-rewriting repeat 3 had not finished and are not collected; no job of this run had failed. The sanity gate (`scripts/e1_gate.py results/e2 N`) passes for every collected cell and repeat: 40 answers in order, no error text recorded as an answer, tokens and truncation flags present, retrieval rows present, run.json complete.
+
+| Cell | Repeats collected | Questions with a cut prompt (of 40), repeats 1, 2, 3 |
+|---|---|---|
+| base | 3 of 3 | 4, 4, 4 |
+| E2a-sentence-groups | 3 of 3 | 1, 1, 1 |
+| E2a-procedure | 3 of 3 | 10, 10, 10 |
+| E2b-supplement | 3 of 3 | 4, 4, 4 |
+| E2c-no-stop | 3 of 3 | 4, 4, 4 |
+| E2c-no-shortest | 3 of 3 | 4, 4, 4 |
+| E2d-threshold | 3 of 3 | 0, 0, 0 |
+| E2e-small | 3 of 3 | 32, 32, 32 |
+| E2e-large | 2 of 3 | 5, 5 |
+| E2g-window-raised | 3 of 3 | 0, 0, 0 |
+| E2h-no-retrieval | 3 of 3 | 0, 0, 0 |
+| E2i-oracle | 3 of 3 | 0, 0, 0 |
+| E2f-rewriting | 2 of 3 | 1, 1 |
+| E2j-extraction-repaired | 3 of 3 | 4, 4, 4 |
+| E2k-period-window | 3 of 3 | 16, 16, 16 |
+
+The cut-prompt counts come from the recorded tokens offered against the window. They are not marks. Parameter-dependent cells: E2k (`num_ctx` 2048) has 16 questions with a cut prompt against 4 in `base`; E2g (`num_ctx` 8192), E2d (threshold 1.0, fewer retrieved chunks), E2h (no retrieval) and E2i (oracle pages) have 0. No E2 answer is marked.

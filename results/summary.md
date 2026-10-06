@@ -2,7 +2,7 @@
 
 Every figure comes from a run recorded in this repository. No figure is estimated. Counts are n of N.
 
-Status: E1 repeats 1 to 3 are collected and pass the sanity gate. No E1 answer is marked yet, so no E1 accuracy is reported. E3 steps 3 and 4 are done. The unreadable-page run is scored by the automatic scorer only. E2 is running; its results are collected in `results/e2/` and not summarised. E4 and E5 have no results yet. The gate results below need no model.
+Status: E1 repeats 1 to 3 are collected and pass the sanity gate. No E1 answer is marked yet, so no E1 accuracy is reported. E3 steps 3 and 4 are done. The unreadable-page run is scored by the automatic scorer only. E2 is collected in `results/e2/` (13 of 15 cells in all three repeats) and passes the sanity gate; no E2 answer is marked, and no E2 accuracy is reported. E4 and E5 have no results yet. The gate results below need no model.
 
 ## Runner measurements
 
@@ -86,6 +86,30 @@ Source: run 37413633953 (`e1-unreadable`), commit d9e1f5a, files in `results/e1_
 | B-llama3 | 0 | 12 |
 | B-mistral | 0 | 7 |
 | B-tinyllama | 0 | 3 |
+
+## E2: collected runs (no accuracy)
+
+Source: run 37413659604 (`e2`), commit 6bc6729 (`results/index.md`, entry `e2-collection`). Three repeats of 40 questions per cell. The table counts questions whose prompt was cut by the window, from recorded tokens. It is not a result on answers.
+
+| Cell | Repeats collected | Questions with a cut prompt (of 40), repeats 1, 2, 3 |
+|---|---|---|
+| base | 3 of 3 | 4, 4, 4 |
+| E2a-sentence-groups | 3 of 3 | 1, 1, 1 |
+| E2a-procedure | 3 of 3 | 10, 10, 10 |
+| E2b-supplement | 3 of 3 | 4, 4, 4 |
+| E2c-no-stop | 3 of 3 | 4, 4, 4 |
+| E2c-no-shortest | 3 of 3 | 4, 4, 4 |
+| E2d-threshold | 3 of 3 | 0, 0, 0 |
+| E2e-small | 3 of 3 | 32, 32, 32 |
+| E2e-large | 2 of 3 | 5, 5 |
+| E2g-window-raised | 3 of 3 | 0, 0, 0 |
+| E2h-no-retrieval | 3 of 3 | 0, 0, 0 |
+| E2i-oracle | 3 of 3 | 0, 0, 0 |
+| E2f-rewriting | 2 of 3 | 1, 1 |
+| E2j-extraction-repaired | 3 of 3 | 4, 4, 4 |
+| E2k-period-window | 3 of 3 | 16, 16, 16 |
+
+E2e-large repeat 3 and E2f-rewriting repeat 3 had not finished when the files were collected.
 
 ## Limitations
 
