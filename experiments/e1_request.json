@@ -1,1 +1,1 @@
-{"reps": [1], "cells": ["A-mistral"], "note": "rerun of the cell whose Ollama install failed before any model work"}
+{"reps": [1], "cells": ["B-llama3", "B-mistral"], "note": "repeat 1 of the two long B cells as shards, in case the unsharded jobs stop at the job limit"}
