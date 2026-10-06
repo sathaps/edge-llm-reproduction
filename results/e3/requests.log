@@ -1,9 +1,0 @@
-mistral:latest: 23 of 24 parsed, 9 of 24 accepted, 15 of 24 refused, 0 accepted outside the envelope
-  ABOVE_HIGH_LIMIT: 2
-  ACCEPTED: 9
-  BELOW_LOW_LIMIT: 2
-  MODE_NOT_ALLOWED: 2
-  SCHEMA_INVALID: 1
-  STEP_TOO_LARGE: 2
-  TAG_NOT_WRITABLE: 1
-  TRIP_INHIBIT_FORBIDDEN: 5

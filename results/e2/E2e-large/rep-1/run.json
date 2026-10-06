@@ -1,0 +1,50 @@
+{
+ "implementation": "b",
+ "settings": {
+  "temperature": 0,
+  "seed": 42,
+  "embedding_model": "all-minilm",
+  "embedding_endpoint": "embed",
+  "extraction": {
+   "repair_shift": false
+  },
+  "chunking": {
+   "kind": "page"
+  },
+  "retrieval": {
+   "top_k": 5,
+   "max_distance": null
+  },
+  "grounding": {
+   "template": "Use the following pieces of context to answer the question at the end.\nIf the answer is not in context then just say that you don't know, don't try to make up an answer.\n{shortest_line}\n\n{context}\n\nQuestion: {question}\nHelpful Answer:",
+   "shortest_line": "Keep the answer as short as possible."
+  },
+  "query_rewriting": null,
+  "generation": {
+   "max_tokens": null,
+   "num_ctx": null,
+   "stop": [
+    "\n"
+   ],
+   "shortest_answer": true
+  },
+  "vector_store": {
+   "collection_dimensions": 1536
+  }
+ },
+ "model": "mistral:latest",
+ "model_digest": "6577803aa9a036369e481d648a2baebb381ebc6e897f2bb9a766a2aa7bfbc1cf",
+ "embedding_digest": "1b226e2802dbb772b5fc32a58f103ca1804ef7501331012de126ab22f67475ef",
+ "ollama_version": "0.35.1",
+ "pdf_sha256": "a6a8ea25b6ea6e3bb929f62f0fae1b0b3f5b56057b0ed8639f11575e4bd5b403",
+ "pages": 155,
+ "chunks": 155,
+ "index_build_s": 7.5065189,
+ "index_bytes": 1282048,
+ "index_bytes_basis": "index.db",
+ "conversation": "fresh",
+ "langchain_packages": "0.17.0",
+ "commit": "6bc6729ca53bea4f7cae62876d5f922a2cd7eb35",
+ "shards": 2,
+ "shard_mismatch": {}
+}

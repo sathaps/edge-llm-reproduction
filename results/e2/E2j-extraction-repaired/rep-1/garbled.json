@@ -1,0 +1,12 @@
+{
+ "chunks": 155,
+ "vectors": 155,
+ "garbled_chunks": 1,
+ "pages_with_a_garbled_chunk": [
+  112
+ ],
+ "questions": 40,
+ "retrieved_slots": 200,
+ "garbled_slots": 12,
+ "questions_with_a_garbled_chunk": 12
+}

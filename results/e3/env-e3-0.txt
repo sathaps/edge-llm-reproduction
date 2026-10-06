@@ -1,7 +1,0 @@
-date_utc: 2026-10-06T09:34:29Z
-commit: 4d4230d67004fa87e76f5b5de64ee23c670e3cda
-4
-               total        used        free      shared  buff/cache   available
-Mem:              15           0          12           0           2          14
-Swap:              2           0           2
-ollama_version: ollama version is 0.35.1

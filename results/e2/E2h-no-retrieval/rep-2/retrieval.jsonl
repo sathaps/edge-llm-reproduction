@@ -1,0 +1,40 @@
+{"question_id":"sc-01","query_used":"What do I check before starting a new fire pump drive engine for the first time?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"sc-02","query_used":"How do I do the weekly battery maintenance?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"sc-03","query_used":"How is the drive shaft lubricated?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"sc-04","query_used":"How do I remove and reinstall the coolant thermostat?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"sc-05","query_used":"How do I start and stop the engine locally at the digital panel?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"sc-06","query_used":"The speed of my electronic fixed-speed engine does not match the factory setting plate. How do I adjust it?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"sc-07","query_used":"What fuel does the engine use?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"sc-08","query_used":"At the first start the gauge shows no oil pressure, or the low oil pressure message appears within fifteen seconds. What do I do?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"cd-01","query_used":"The engine did not start automatically in a fire emergency. How do I start it by hand?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"cd-02","query_used":"How do I do the weekly test run and what do I check during it?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"cd-03","query_used":"How do I change the engine oil and filter?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"cd-04","query_used":"How is the heat exchanger pressure tested when an internal leak is suspected, and what if it leaks?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"cd-05","query_used":"How do I change the fuel filters, and what if the engine does not restart?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"cd-06","query_used":"How do I run the overspeed test from the panel, and what happens at the end?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"cd-07","query_used":"I held the Engine STOP button until the engine stopped, let go, and the engine started again. Why?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"cd-08","query_used":"The coolant gauge on the panel has gone yellow and the engine is cold, below 100 \u00B0F. Is something wrong?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"ap-01","query_used":"What pressure are the cooling loop water pressure regulators set to on a CFP60E?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"ap-02","query_used":"My engine is radiator-cooled. Do the raw water high inlet temperature and clogged strainer signals apply to it?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"ap-03","query_used":"My engine is mechanical, not electronic. Does the AUTOSWITCH screen apply?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"ap-04","query_used":"Do I need to enter a VSPLC transducer offset on an electronic engine that does not have VSPLC enabled?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"ap-05","query_used":"Does the oil level gauge adjustment procedure apply to a CFP30E?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"ap-06","query_used":"My engine is mechanical. Can I set an engine cooldown time at the panel?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"ap-07","query_used":"Can the RPM ADJUSTMENT screen be used to trim the speed of a mechanical engine?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"ap-08","query_used":"My radiator-cooled engine shows cooling loop sensor values on the display. Should I act on them?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"un-01","query_used":"What is the displacement of the CFP11E in litres?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"un-02","query_used":"What does a new CFP11E engine cost?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"un-03","query_used":"What belt tension should I set on the coolant pump and alternator drive belt?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"un-04","query_used":"What are the valve lash settings?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"un-05","query_used":"What is the maximum axial end-play allowed on the turbocharger shaft?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"un-06","query_used":"What is the total engine oil system capacity of a CFP23E?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"un-07","query_used":"Which spare parts should I keep in stock for this engine?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"un-08","query_used":"What flow rate in gpm does the fire pump itself deliver?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"tl-01","query_used":"Which lubricating oil filter is recommended for the CFP11E?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"tl-02","query_used":"What is the minimum raw water flow with water temperatures up to 80 \u00B0F?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"tl-03","query_used":"What is the maximum allowable back pressure of the complete exhaust system?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"tl-04","query_used":"What is the fuel rate at 1760 RPM?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"tl-05","query_used":"What battery cold cranking amperes and reserve capacity are recommended for the engine?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"tl-06","query_used":"What is the engine output in BHP at 2100 RPM?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"tl-07","query_used":"What exhaust gas temperature is specified for my CFP11E at 1470 RPM?","mode":"none","given_text":null,"retrieved":[]}
+{"question_id":"tl-08","query_used":"What is the nominal oil pressure at rated speed on my CFP11E, and what are the high and low oil-pan capacities?","mode":"none","given_text":null,"retrieved":[]}

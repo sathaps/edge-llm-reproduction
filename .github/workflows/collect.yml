@@ -32,14 +32,16 @@ jobs:
               tmp.mkdir(parents=True, exist_ok=True)
               subprocess.run(["gh", "run", "download", str(r["run_id"]), "--repo", "${{ github.repository }}", "--dir", str(tmp)], check=True)
               dest = pathlib.Path(r["dest"])
+              per_artifact = r.get("per_artifact", False)  # one sub-directory per artifact, when the artifacts write the same file names
               for art in tmp.iterdir():
+                  base = dest / art.name if per_artifact else dest
                   res = art / "results"
                   srcs = [d for d in sorted(res.iterdir()) if d.is_dir()] if res.exists() else [art]
                   for src in srcs:
                       for f in src.rglob("*"):
                           if not f.is_file() or f.name in ("chunks.jsonl", "index.db") or "_build_b" in f.parts:
                               continue
-                          out = dest / f.relative_to(src)
+                          out = base / f.relative_to(src)
                           if f.name in ("resources.csv", "env.txt"):
                               out = out.with_name(f"{f.stem}-{art.name}{f.suffix}")  # one file per job, so jobs do not overwrite each other
                           out.parent.mkdir(parents=True, exist_ok=True)

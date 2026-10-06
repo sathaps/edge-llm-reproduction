@@ -1,6 +1,0 @@
-mistral:latest: 9 of 10 parsed, 0 of 10 accepted, 10 of 10 refused, 0 accepted outside the envelope
-  ABOVE_HIGH_LIMIT: 4
-  MODE_NOT_ALLOWED: 1
-  SCHEMA_INVALID: 1
-  STEP_TOO_LARGE: 2
-  TRIP_INHIBIT_FORBIDDEN: 2
