@@ -1,4 +1,3 @@
 {"runs": [
- {"run_id": 37443527953, "dest": "results/e3", "per_artifact": true},
  {"run_id": 37413659604, "dest": "results/e2"}
-], "note": "10:25, E3 per model, E2 so far"}
+], "note": "12:31 final collection of E2"}
