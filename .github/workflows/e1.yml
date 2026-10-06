@@ -34,6 +34,9 @@ jobs:
           import json, os
           reps = [int(r) for r in os.environ["INPUT_REPS"].split(",")] if os.environ.get("INPUT_REPS") else json.load(open("experiments/e1_request.json"))["reps"]
           cells = json.load(open("experiments/e1.json"))["cells"]
+          if not os.environ.get("INPUT_REPS") and "cells" in json.load(open("experiments/e1_request.json")):
+              wanted = json.load(open("experiments/e1_request.json"))["cells"]  # rerun of named cells only
+              cells = [c for c in cells if c["id"] in wanted]
           embed = {"a": "mxbai-embed-large:latest", "b": "all-minilm:latest"}
           include = [{"cell": c["id"], "model": c["model"], "embed": embed[c["impl"]], "rep": r} for r in reps for c in cells]
           print("matrix=" + json.dumps({"include": include}))
@@ -55,9 +58,12 @@ jobs:
       - name: Install Ollama and pull models
         run: |
           curl -fsSL https://ollama.com/install.sh | sh
-          for i in $(seq 1 30); do curl -s localhost:11434/api/version && break; sleep 1; done
-          ollama pull "${{ matrix.model }}"
-          ollama pull "${{ matrix.embed }}"
+          # The installer can return before its service answers. Start the server ourselves if it does not come up.
+          for i in $(seq 1 20); do curl -s localhost:11434/api/version && break; sleep 1; done
+          curl -s localhost:11434/api/version || { (ollama serve > ollama_serve.log 2>&1 &); for i in $(seq 1 60); do curl -s localhost:11434/api/version && break; sleep 2; done; }
+          for m in "${{ matrix.model }}" "${{ matrix.embed }}"; do
+            for try in 1 2 3; do ollama pull "$m" && break; sleep 10; done
+          done
       - name: Fetch the manual
         run: |
           read -r name url < <(grep -v '^#' manuals/chosen.txt | head -n 1)

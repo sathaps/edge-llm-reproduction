@@ -1,1 +1,1 @@
-{"reps": [1], "note": "restarted after the protocol-v1 tag was created"}
+{"reps": [1], "cells": ["A-mistral"], "note": "rerun of the cell whose Ollama install failed before any model work"}
