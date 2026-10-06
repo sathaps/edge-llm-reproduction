@@ -392,7 +392,7 @@ def test_merge_applies_changed_cells_and_verdicts(tmp_path):
     returned = [dict(d) for d in delivered]
     returned[0]["verdict"] = "ok"
     returned[1].update(verdict="fix", reference_answer="r2")
-    returned[2].update(verdict="fix", correction="check page")
+    returned[2].update(verdict="fix", correction="")
     returned[3].update(verdict="drop")
     unread = []
     report = mv.merge(delivered, returned, main, unread, "M", "2026-10-06")
@@ -401,3 +401,13 @@ def test_merge_applies_changed_cells_and_verdicts(tmp_path):
     assert by_id["sc-2"]["reference_answer"] == "r2" and by_id["sc-2"]["verified_by"] == "M"
     assert by_id["sc-3"]["verified_by"] == "" and report["unresolved"][0].startswith("sc-3")
     assert by_id["sc-4"].get("_drop") and report["dropped"] == ["sc-4"] and report["unverified"] == ["sc-5"]
+
+
+def test_parse_correction_splits_question_answer_pages_and_notes():
+    import merge_verification as mv
+    fix = mv.parse_correction("Question: New question?\nAnswer: First step. Second step. PDF pages 78-79. Note: page 101 differs.")
+    assert fix == {"question": "New question?", "answer": "First step. Second step.", "pages": "78;79", "notes": "Note: page 101 differs."}
+    assert mv.parse_correction("Answer: One. PDF page 42. Added a check.")["pages"] == "42"
+    unanswerable = mv.parse_correction("Answer: The manual does not say. Do not guess. The original claim was wrong: PDF page 111 also covers it. The question remains unanswerable.")
+    assert unanswerable["answer"] == "The manual does not say. Do not guess." and unanswerable["pages"] is None
+    assert mv.parse_correction("only a note")["answer"] is None

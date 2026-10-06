@@ -23,3 +23,5 @@ Forbidden elements. An applicability question lists `forbidden_elements`: the ot
 Procedure questions. `required_elements` lists every prerequisite and every step in the order of the manual. An answer is complete only when every element is present. A step that is present but out of order makes `complete` no and, when the order changes the result, `correct` partial. The automatic scorer reports `elements_in_order` and leaves the decision to the marker.
 
 Verification of the reference answers uses the verdicts `ok`, `fix` and `drop`.
+
+Contrast with a forbidden value. The automatic scorer counts any answer that contains a forbidden element as not correct, even when the answer uses it only as a contrast (for example "345 kPa for the CFP60E; the other models use 40 psi"). The marker does not follow that rule: an answer that gives the excluded value for the variant asked about is no, and an answer that states the right value and names the other value as belonging to other models is judged on the right value. Where the two differ, the maintainer's mark is the one reported and the difference is counted in the scorer's agreement.

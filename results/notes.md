@@ -190,3 +190,14 @@ Run 37386511987 (commit 2ed114f, Ollama 0.35.1, Fulton manual). Each page has on
 | mxbai-embed-large | 512 | 72 | beyond | 141 | 61 of 141 | 22 of 141 |
 
 B uses all-minilm, so a passage that lies beyond the first 256 tokens of its page is found in the top 5 in 53 of 150 queries, against 107 of 150 for a passage inside the window, and in the first place in 16 of 150 against 83 of 150. A passage beyond the window is still found about a third of the time, because the page vector holds the beginning of the page and neighbouring text shares words. The result comes from the Fulton manual. The job failed on the Cummins manual (run 37389480081) because pages without text give an empty input, which the script now skips.
+
+
+## Verification of the Cummins questions (2026-10-05)
+
+The maintainer verified all 45 rows of the v2 pack (29 ok, 16 fix, no drop). He wrote each fix in the correction column and did not edit the question or answer cells. `scripts/merge_verification.py` reads a non-empty correction as the change: an optional `Question:` line replaces the question, `Answer:` up to the `PDF page(s) N.` marker replaces the reference answer, the marker sets the source pages and what follows it is his note to us. `docs/verification_merge_v2.md` lists question, source pages, required elements and forbidden elements before and after for the 16 rows. Required elements were then derived from the corrected answers: an element for every prerequisite or step he added, and none removed unless his answer removed the fact.
+
+Notes on three rows:
+
+1. sc-02, weekly battery maintenance. Page 79 (weekly section) says to replace the battery when the specific gravity is below 1.215. Page 101 (low battery voltage chart) says to charge the battery below 1.215. The manual is inconsistent on this. The question is tied to the weekly section, and the reference answer keeps the weekly-section wording.
+2. un-06, oil capacity of a CFP23E. The maintainer reads the data on page 112 as labelled CFP11E in the PDF. Our extraction of the page shows no model name in the table text. The label is in a garbled figure label: the raw text of the cooling loop chart title on page 112 decodes with the constant shift to "CFP11E Cooling Loop", followed by "Raw Water Flow [GPM]" and "Raw Water Temperature [F]". A reader sees the label on the chart. It is absent from the extracted text of the table, and no pipeline can retrieve it as a model name for the table. The question stays unanswerable.
+3. ap-01. The reference answer now gives only the CFP60E value (345 kPa, 50 psi). The forbidden elements are the other models' value (276 kPa, 40 psi). The automatic scorer fails a correct answer that mentions 40 psi for the other models as a contrast. The scorer is an addition to the maintainer's blind marks, and his mark is the one reported.
