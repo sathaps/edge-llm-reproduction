@@ -24,9 +24,11 @@ jobs:
           mkdir -p out
           { echo "date_utc: $(date -u +%FT%TZ)"; echo "commit: $GITHUB_SHA"; nproc; free -g; } | tee out/env.txt
           curl -fsSL https://ollama.com/install.sh | sh
-          for i in $(seq 1 30); do curl -s localhost:11434/api/version && break; sleep 1; done
+          # The installer can return before its service answers. Start the server ourselves if it does not come up.
+          for i in $(seq 1 20); do curl -s localhost:11434/api/version && break; sleep 1; done
+          curl -s localhost:11434/api/version || { (ollama serve > ollama_serve.log 2>&1 &); for i in $(seq 1 60); do curl -s localhost:11434/api/version && break; sleep 2; done; }
           echo "ollama_version: $(ollama --version 2>&1 | tail -1)" | tee -a out/env.txt
-          ollama pull "${{ matrix.model }}"
+          for try in 1 2 3; do ollama pull "${{ matrix.model }}" && break; sleep 10; done
       - name: Operator requests
         run: dotnet run --project gate/modelrun -- --requests gate/proposals/requests.json --model "${{ matrix.model }}" --out out/requests | tee out/requests.log
       - name: Adversarial requests
