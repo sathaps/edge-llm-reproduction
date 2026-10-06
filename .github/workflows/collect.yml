@@ -1,0 +1,55 @@
+name: collect
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - experiments/collect_request.json
+
+# Copies the files of record of finished runs into the repository, because the artifacts cannot be fetched from the
+# development container. Request file: {"runs": [{"run_id": 1234, "dest": "results/e1"}]}. Manual text is not copied:
+# chunks.jsonl and the index databases stay in the artifact.
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download and filter the artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json, subprocess, pathlib, shutil
+          req = json.load(open("experiments/collect_request.json"))
+          for r in req["runs"]:
+              tmp = pathlib.Path("collect_tmp") / str(r["run_id"])
+              tmp.mkdir(parents=True, exist_ok=True)
+              subprocess.run(["gh", "run", "download", str(r["run_id"]), "--repo", "${{ github.repository }}", "--dir", str(tmp)], check=True)
+              dest = pathlib.Path(r["dest"])
+              for art in tmp.iterdir():
+                  src = art / "results" / "e1" if (art / "results" / "e1").exists() else art
+                  for f in src.rglob("*"):
+                      if not f.is_file() or f.name in ("chunks.jsonl", "index.db") or "_build_b" in f.parts:
+                          continue
+                      out = dest / f.relative_to(src)
+                      out.parent.mkdir(parents=True, exist_ok=True)
+                      shutil.copy(f, out)
+                  for extra in art.glob("manual.sha256"):
+                      shutil.copy(extra, dest / f"manual-{art.name}.sha256")
+          shutil.rmtree("collect_tmp")
+          PY
+          find results -maxdepth 4 | head -50
+      - name: Commit
+        run: |
+          git config user.name "Sathappan Alagusundaram"
+          git config user.email "4360988+sathaps@users.noreply.github.com"
+          git add results
+          git commit -m "Record the files of the runs listed in collect_request.json" || { echo "nothing to commit"; exit 0; }
+          git pull --rebase origin main
+          git push origin main
