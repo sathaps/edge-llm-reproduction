@@ -45,4 +45,4 @@ Both pipelines accept `--ollama URL`, `--questions CSV`, `--set path=value`, `--
 
 ## Scope
 
-Results are for one manual, the Cummins CFP11E manual. The question set and the manual for a second corpus (Fulton) were prepared and not used. See `docs/protocol_amendments.md`, Amendment 3.
+Results are for one manual, the Cummins CFP11E manual. The question set and the manual for a second corpus (Fulton) were prepared and not used so far. The second corpus is deferred. See `docs/protocol_amendments.md`, Amendment 3.

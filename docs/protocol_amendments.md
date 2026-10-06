@@ -18,12 +18,12 @@ What. `scripts/check_survival_tail.py` and the workflow `survival-tail.yml` are 
 
 Why. A model that misses a code is weak evidence that the text was cut. The token count does not depend on what the model says.
 
-## Amendment 3, 2026-10-06: the second corpus is not run
+## Amendment 3, 2026-10-06: the second corpus is deferred
 
-What. The second corpus named in the protocol is not run. We do not scan for a second manual, we write no questions for one, and the replication of 20 questions on it is dropped. All results are reported for one manual, the Cummins CFP11E manual. The article states this as a limit. The Fulton files stay in the repository unchanged and are marked in the README as prepared and not used. The entries for a second corpus in `PROTOCOL.md` and `manuals/corpora.txt` describe the earlier plan and are not run.
+What. The second corpus named in the protocol is not run now. Whether to run it is decided by Sathappan after E1, E2, E3 and E4 are complete. If it is run then, it is reported as added after the main results were seen. Until the decision, we do not scan for a second manual and we write no questions for one. Results are reported for one manual, the Cummins CFP11E manual, and the article states this as a limit. The Fulton files stay in the repository unchanged and are marked in the README as prepared and not used so far. The entries for a second corpus in `PROTOCOL.md` and `manuals/corpora.txt` describe the earlier plan and are not run now.
 
 Why. The article is aimed at a magazine. A second corpus would cost two more marking sittings for a result that the article does not depend on.
 
-State when decided. No E1 answer had been collected or read. `results/e1/` did not exist. The file is outside the manifest and no frozen file changed.
+State when decided. No E1 answer had been collected or read. `results/e1/` did not exist. The file is outside the manifest and no frozen file changed. An earlier version of this entry said the second corpus was dropped. That was corrected the same day.
 
 What stands. E1 with three repeats, E2 with the period-window cell of Amendment 1, E3, E4, the blind marking of all E1 repeat 1 answers by Sathappan, and the second marker's sample of 60.
