@@ -213,3 +213,45 @@ The difference between 62e8c3d and b41cea7 is limited to the workflow: `.github/
 The E1 table lists for every cell its commit, Ollama version, model digest and embedding digest (`scripts/e1_table.py`, from the `run.json` of each cell). A cell that ran on a different Ollama version or a different model digest from the others of its model is reported as different, and it is not used until the maintainer has seen the difference.
 
 Rule for every rerun after the freeze: workflow fixes are allowed. Anything that changes pipeline behaviour (pipeline code, config, prompts, scoring, questions, models or Ollama version) after the freeze is a recorded deviation that the maintainer sees before the result is used.
+
+## Which part of an over-long prompt the model sees (probe)
+
+Run 37391090572, jobs `survival (llama3:latest)`, `survival (mistral:latest)`, `survival (tinyllama:latest)`, commit edde00b, Ollama 0.35.1, default window. The prompt has B's template and eight generated filler pages, 16 code words at page starts and ends, one in the question. Each code word is asked for with a separate question: which code word follows the label. A label that is not in the prompt is the negative control. All 17 labels are in the prompt as sent.
+
+| Model | Window | Tokens used | Codes read correctly (of 17) | Which ones | Control |
+|---|---|---|---|---|---|
+| llama3 | 4096 | 2060 | 6 | page 6 end, pages 7 and 8, question | answered none |
+| mistral | 4096 | 2051 | 4 | page 7 end, page 8, question | answered none |
+| tinyllama | 2048 | 1026 | 0 | none | gave a code word |
+
+Every code word from the head of the prompt to page 6 (llama3) or page 7 (mistral) was lost, although it was sent. The model reads the end of the prompt and does not read the start. mistral answered none for four of the lost codes, llama3 gave a wrong code word for all of them. tinyllama read no code and also failed the control, so its answers carry no information. The model listing of codes (first step of the same job) is in the job logs and in `survival_<model>.csv`; we do not use it, because a model that lists codes can miss a code it was shown.
+
+Run 37389480081 used the same logic. Its retrieval job failed on pages without text, so we do not use it.
+
+## Embedding retrieval on the Cummins manual
+
+Run 37391090572, job `retrieval`, commit edde00b, Ollama 0.35.1, `/api/embed`. Passages of three sentences, queried with their own first sentence. A hit means the right page is among the 5 nearest page vectors. "Inside" passages lie within the part of the page that fits the window, "beyond" passages start after it. Only pages longer than the window take part.
+
+| Model | Window | Pages longer than window | Group | Queries | Top 5 | Top 1 |
+|---|---|---|---|---|---|---|
+| all-minilm | 256 | 91 | inside | 150 | 134 (89.3 %) | 105 (70.0 %) |
+| all-minilm | 256 | 91 | beyond | 150 | 40 (26.7 %) | 19 (12.7 %) |
+| mxbai-embed-large | 512 | 36 | inside | 135 | 100 (74.1 %) | 70 (51.9 %) |
+| mxbai-embed-large | 512 | 36 | beyond | 46 | 7 (15.2 %) | 3 (6.5 %) |
+
+Text beyond the window is found far less often. The same job repeats the endpoint check on this manual: the legacy `/api/embeddings` returns HTTP 500 for 600 words or more (all-minilm) and 200 words or more (mxbai) under 0.35.1, `/api/embed` returns 200 and counts 256 or 512 tokens.
+
+## Check 3 addition: llama3 prompt truncation on Ollama 0.3.14
+
+Run 37387498181, job `chat`, commit 93573ef, Ollama 0.3.14, `llama3:latest`, assumed window 2048 (0.3.14 does not report it, `WINDOW_ASSUMED`). The default pass and the raised pass use the same window, so the tokens used are the same.
+
+| Shape | Units | Tokens offered | Tokens used | Tokens dropped | Truncated |
+|---|---|---|---|---|---|
+| A | 3 | 687 | 692 | 0 | no |
+| B | 1 | 896 | 896 | 0 | no |
+| B | 2 | 1560 | 1560 | 0 | no |
+| B | 3 | 2482 | 1036 | 1446 | yes |
+| B | 5 | 3603 | 1036 | 2567 | yes |
+| B | 8 | 6008 | 1036 | 4972 | yes |
+
+On 0.3.14 the llama3 prompt is also cut to 1036 tokens, about half of the 2048 window, as on 0.35.1 with the 4096 window (2060 used). The window default differs between the two versions (2048 assumed here, 4096 on 0.35.1) and the cut is the same fraction. We did not read the window from the server on 0.3.14.
