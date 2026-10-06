@@ -46,7 +46,7 @@ All 57 outcomes matched the reason code the rule predicts. Every one of the 14 r
 
 ## E1: collected runs and software (no accuracy)
 
-Sources and commits: `results/index.md`, entry `e1-repeats-1-3`. Six cells, three repeats, 40 questions each; 720 answers. The sanity gate passes for every cell and repeat. Ollama 0.35.1 and the same manual file in every run. Questions of 40 whose prompt was cut by the default window, the same in all three repeats:
+Source: runs 37394227689, 37395147521, 37413607526 and 37413620660, commits 62e8c3d, b41cea7, 467830b and 7aa29b2 (`results/index.md`, entry `e1-repeats-1-3`). Six cells, three repeats, 40 questions each; 720 answers. The sanity gate passes for every cell and repeat. Ollama 0.35.1 and the same manual file in every run. Questions of 40 whose prompt was cut by the default window, the same in all three repeats:
 
 | Cell | Questions with a cut prompt (of 40) |
 |---|---|
