@@ -1,0 +1,28 @@
+name: tag
+on:
+  push:
+    branches: [main]
+    paths:
+      - experiments/tag_request.json
+
+# Pushing a tag from the development container is refused, so the tag is created here from a request file:
+# {"tag": "protocol-v1", "sha": "<commit>"}. A tag that already exists is never moved.
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create the tag
+        run: |
+          tag=$(python3 -c "import json; print(json.load(open('experiments/tag_request.json'))['tag'])")
+          sha=$(python3 -c "import json; print(json.load(open('experiments/tag_request.json'))['sha'])")
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then echo "$tag exists; not moved"; exit 0; fi
+          git merge-base --is-ancestor "$sha" HEAD
+          git tag "$tag" "$sha"
+          git push origin "refs/tags/$tag"
+          git ls-remote --tags origin
