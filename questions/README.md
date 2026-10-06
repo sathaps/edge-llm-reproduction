@@ -1,6 +1,6 @@
 # Question set
 
-`questions.csv` is the question set of the primary manual (Cummins CFP11E, `cummins_cfp11e.csv`). `fulton_endura_xe.csv` is the draft set for the fallback manual. `questions.csv` has the columns of `questions.template.csv`. `scoring/questions.py` validates it.
+`questions.csv` is the question set of the primary manual (Cummins CFP11E, `cummins_cfp11e.csv`). `fulton_endura_xe.csv` is the draft set for the fallback manual. It was prepared and not used. The second corpus is not run (`docs/protocol_amendments.md`, Amendment 3). `questions.csv` has the columns of `questions.template.csv`. `scoring/questions.py` validates it.
 
 | Column | Content |
 |---|---|

@@ -17,3 +17,13 @@ Commit: recorded in `results/index.md` under `amendment-1`.
 What. `scripts/check_survival_tail.py` and the workflow `survival-tail.yml` are added. The check sends the tail of the probe prompt alone and compares its `prompt_eval_count` with the tokens used by the full prompt. It also records where B's grounding instruction sits and which endpoint B calls. No frozen file is touched and no E1 cell is affected.
 
 Why. A model that misses a code is weak evidence that the text was cut. The token count does not depend on what the model says.
+
+## Amendment 3, 2026-10-06: the second corpus is not run
+
+What. The second corpus named in the protocol is not run. We do not scan for a second manual, we write no questions for one, and the replication of 20 questions on it is dropped. All results are reported for one manual, the Cummins CFP11E manual. The article states this as a limit. The Fulton files stay in the repository unchanged and are marked in the README as prepared and not used. The entries for a second corpus in `PROTOCOL.md` and `manuals/corpora.txt` describe the earlier plan and are not run.
+
+Why. The article is aimed at a magazine. A second corpus would cost two more marking sittings for a result that the article does not depend on.
+
+State when decided. No E1 answer had been collected or read. `results/e1/` did not exist. The file is outside the manifest and no frozen file changed.
+
+What stands. E1 with three repeats, E2 with the period-window cell of Amendment 1, E3, E4, the blind marking of all E1 repeat 1 answers by Sathappan, and the second marker's sample of 60.

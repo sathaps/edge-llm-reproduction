@@ -42,3 +42,7 @@ Both pipelines accept `--ollama URL`, `--questions CSV`, `--set path=value`, `--
 - No number is estimated, rounded up, or carried over from the original builds.
 - Reference answers in the question set are verified by a person against the manual before any scoring.
 - Nothing produced against the stub endpoint is a result.
+
+## Scope
+
+Results are for one manual, the Cummins CFP11E manual. The question set and the manual for a second corpus (Fulton) were prepared and not used. See `docs/protocol_amendments.md`, Amendment 3.
