@@ -1,0 +1,13 @@
+date_utc: 2026-10-06T04:42:48Z
+commit: 7aa29b29a1bb902093991827b21180ddf5e730df
+--- nproc
+4
+--- free -g
+total        used        free      shared  buff/cache   available
+Mem:              15           1           4           0          10          14
+Swap:              2           0           2
+--- lscpu
+CPU(s):                                  4
+Model name:                              AMD EPYC 7763 64-Core Processor
+--- ollama version: {"version":"0.35.1"}
+--- ollama tags: {"models":[{"name":"all-minilm:latest","model":"all-minilm:latest","modified_at":"2026-10-06T04:42:47.401426199Z","size":45960996,"digest":"1b226e2802dbb772b5fc32a58f103ca1804ef7501331012de126ab22f67475ef","details":{"parent_model":"","format":"gguf","family":"bert","families":["bert"],"parameter_size":"23M","quantization_level":"F16","context_length":512,"embedding_length":384},"capabilities":["embedding"]},{"name":"mistral:latest","model":"mistral:latest","modified_at":"2026-10-06T04:42:46.012413279Z","size":4372824384,"digest":"6577803aa9a036369e481d648a2baebb381ebc6e897f2bb9a766a2aa7bfbc1cf","details":{"parent_model":"","format":"gguf","family":"llama","families":["llama"],"parameter_size":"7.2B","quantization_level":"Q4_K_M","context_length":32768,"embedding_length":4096},"capabilities":["completion","tools"]}]}

@@ -1,0 +1,2 @@
+experiment,cell,rep,exit_code,wall_s,pipeline_peak_rss_kb,ollama_peak_rss_kb,index_build_s,index_bytes,index_bytes_basis,answers,mean_answer_s
+e1,B-llama3,3,0,469.958,258768,7685396,3.8380691,1282048,index.db,10,46.088
