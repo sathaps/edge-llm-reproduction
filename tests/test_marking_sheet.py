@@ -78,9 +78,9 @@ def test_blind(built):
         wb = load_workbook(out / name)
         for ws in wb:
             head = [c.value for c in ws[1]]
-            assert head[:len(ms.HEADER)] in ([], ms.HEADER) or ws.title == ms.TAB3
+            assert head == ms.HEADER
             for row in ws.iter_rows(min_row=2, values_only=True):
-                cells = dict(zip(head, row)) if ws.title != ms.TAB3 else {"x": row[0]}
+                cells = dict(zip(head, row))
                 blob = " ".join(str(v) for k, v in cells.items() if k != "answer" and v is not None).lower()
                 assert not [w for w in words if w in blob], (name, ws.title, blob[:80])
 
@@ -92,7 +92,7 @@ def test_header_dropdowns_and_freeze(built):
     assert [c.value for c in ws[1]] == ms.HEADER and ws.freeze_panes == "B2"
     formulas = {dv.formula1 for dv in ws.data_validations.dataValidation}
     assert '"yes,partial,no"' in formulas and '"yes,no"' in formulas
-    assert wb.sheetnames[:2] == [ms.TAB1, ms.TAB2]
+    assert wb.sheetnames == [ms.TAB1]
 
 
 def test_sample(built):

@@ -2,7 +2,7 @@
 """Blind marking sheet for E1 answers, the second-marker sample, and the check of a returned sheet.
 
 usage:
-  marking_sheet.py build <e1-dir> <rep> <out-dir> <seed> [--sample-seed N] [--unreadable-dir DIR]
+  marking_sheet.py build <e1-dir> <rep> <out-dir> <seed> [--sample-seed N]
   marking_sheet.py check <returned.xlsx> <original.xlsx> [--emit sheet_blind.csv]
 
 build reads <e1-dir>/<cell>/rep-<rep>/answers.jsonl for every cell, merges answers to the same question that are equal after
@@ -11,7 +11,7 @@ trimming and collapsing whitespace, shuffles the answers of each question with t
   e1_rep1_key.csv                         answer id to cells; not for the marker
   e1_rep1_second_marker_sample.xlsx/.csv  60 distinct answers, stratified by category and cell
   e1_rep1_second_marker_meta.json         seeds, counts, the SHA-256 of the key
-  e1_rep1_second_marker_checklist.md      one page from the frozen marking rules
+  e1_rep1_marking_checklist.md            one page from the frozen marking rules, for both markers
 Nothing from the protocol-v1 manifest is changed. The frozen question files and the scorer's marking fields are only read.
 check refuses a returned sheet that has an empty or out-of-list marking cell, a changed read-only cell or a missing row.
 """
@@ -36,7 +36,7 @@ HEADER = READ + FILL
 WIDTH = {"answer_id": 10, "question_id": 9, "category": 16, "question": 40, "reference_answer": 60, "required_elements": 36,
          "forbidden_elements": 22, "answer": 70, "correct": 11, "complete": 11, "respects_applicability": 14, "abstained": 11, "note": 40}
 EMPTY = "[empty answer]"
-TAB1, TAB2, TAB3 = "Answers", "Unreadable pages", "Rules"
+TAB1 = "Answers"
 
 
 def norm(text):
@@ -110,33 +110,11 @@ def sheet(ws, rows):
             dv.add(f"{col}{i}")
 
 
-RULES = [
-    "Mark every row. Pick values from the lists. Use the note column for anything else.",
-    "correct: yes = states what the reference answer states and nothing contradicts the manual. partial = states part of it, or adds a wrong claim. no = states something else, contradicts it, or gives an answer where the manual has none.",
-    "complete: yes = every required element is present. Alternatives joined by ~ count as one element. A one-word or one-number answer is complete when it equals the reference.",
-    "respects_applicability: applicability rows only, yes or no. Leave the grey cells of other categories blank.",
-    "abstained: yes = the answer says the manual does not give the information. An answer that only refuses or only says it does not know counts as an abstention.",
-    "Unanswerable questions: correct is yes only when the answer abstains and invents no value.",
-    "Do not look up the manual. The reference answer is the standard. Note a reference answer you think is wrong in the note column.",
-    "Spelling, units written another way and word order do not matter. A wrong unit or a different number is no.",
-    "An answer that gives the excluded value or steps (forbidden elements) as if they applied to the variant asked about is no for respects_applicability.",
-    "A procedure with a step out of order: complete is no, and correct is partial when the order changes the result.",
-]
-
-
-def write_book(path, rows, extra_rows=None):
+def write_book(path, rows):
     wb = Workbook()
     ws = wb.active
     ws.title = TAB1
     sheet(ws, rows)
-    ws2 = wb.create_sheet(TAB2)
-    sheet(ws2, extra_rows or [])
-    ws3 = wb.create_sheet(TAB3)
-    for line in RULES:
-        ws3.append([line])
-    ws3.column_dimensions["A"].width = 140
-    for row in ws3.iter_rows():
-        row[0].alignment = Alignment(wrap_text=True, vertical="top")
     wb.save(path)
 
 
@@ -173,9 +151,9 @@ def second_sample(rows, cells, size, seed):
     return sorted(chosen, key=lambda r: r["answer_id"]), stratum
 
 
-CHECKLIST = """# Second marker checklist
+CHECKLIST = """# Marking checklist
 
-You mark a sample of answers from the file `e1_rep1_second_marker_sample.xlsx`. You do not see who or what wrote an answer. Mark on your own and do not compare with anyone until the sheet is returned.
+You mark the answers in the sheet. You do not see who or what wrote an answer. Mark on your own and do not compare with anyone until the sheet is returned.
 
 For every row, pick a value in each blue column. The reference answer is the standard. Do not look up the manual.
 
@@ -191,33 +169,27 @@ For every row, pick a value in each blue column. The reference answer is the sta
 """
 
 
-def build(e1_dir, rep, out_dir, seed, sample_seed, unreadable_dir=None):
+def build(e1_dir, rep, out_dir, seed, sample_seed):
     qs = qmod.verified(qmod.read_questions(ROOT / "questions" / "questions.csv"))
     cells = load_cells(e1_dir, rep)
     rows = merge(cells, qs, random.Random(seed), e1_dir)
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    unread = []
-    if unreadable_dir:
-        uq = qmod.verified(qmod.read_questions(ROOT / "questions" / "cummins_cfp11e_unreadable.csv"))
-        unread = merge(load_cells(unreadable_dir, rep), uq, random.Random(seed + 1), unreadable_dir)
-        for r in unread:
-            r["answer_id"] = "U" + r["answer_id"][1:]
-    write_book(out / "e1_rep1_marking_sheet.xlsx", rows, unread)
+    write_book(out / "e1_rep1_marking_sheet.xlsx", rows)
     write_csv(out / "e1_rep1_marking_sheet.csv", rows)
     with open(out / "e1_rep1_key.csv", "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["answer_id", "config_id", "question_id", "run_dir"])
-        for r in rows + unread:
+        for r in rows:
             for c in r["cells"]:
                 w.writerow([r["answer_id"], c, r["question_id"], f"{Path(e1_dir).name}/{c}/rep-{rep}"])
     sample, stratum = second_sample(rows, list(cells), 60, sample_seed)
     write_book(out / "e1_rep1_second_marker_sample.xlsx", sample)
     write_csv(out / "e1_rep1_second_marker_sample.csv", sample)
-    (out / "e1_rep1_second_marker_checklist.md").write_text(CHECKLIST)
+    (out / "e1_rep1_marking_checklist.md").write_text(CHECKLIST)
     key_sha = hashlib.sha256((out / "e1_rep1_key.csv").read_bytes()).hexdigest()
     meta = {"seed": seed, "sample_seed": sample_seed, "cells": list(cells), "key_sha256": key_sha,
-            "answers_total": sum(len(a) for a in cells.values()), "distinct_answers": len(rows), "unreadable_distinct_answers": len(unread),
+            "answers_total": sum(len(a) for a in cells.values()), "distinct_answers": len(rows),
             "distinct_by_category": dict(Counter(r["category"] for r in rows)),
             "sample_size": len(sample), "sample_by_category": dict(Counter(r["category"] for r in sample)),
             "sample_by_stratum_cell": dict(Counter(stratum.values())),
@@ -244,7 +216,7 @@ def check(returned, original, emit=None):
     a, b = load_workbook(returned), load_workbook(original)
     allowed = {k: set(v) for k, v in MARKS.items()}
     emitted = []
-    for tab in (TAB1, TAB2):
+    for tab in (TAB1,):
         if tab not in a.sheetnames:
             problems.append(f"{tab}: tab is missing")
             continue
@@ -252,8 +224,6 @@ def check(returned, original, emit=None):
         ohead, orows = read_tab(b[tab])
         if head != HEADER:
             problems.append(f"{tab}: header row changed")
-            continue
-        if tab == TAB2 and not orows:
             continue
         got = {text(r["answer_id"]): r for r in rows}
         want = OrderedDict((text(r["answer_id"]), r) for r in orows)
@@ -295,7 +265,7 @@ if __name__ == "__main__":
     if cmd == "build":
         args = [a for a in sys.argv[2:] if not a.startswith("--")]
         opts = dict(zip(sys.argv[2:], sys.argv[3:]))
-        meta = build(args[0], args[1], args[2], int(args[3]), int(opts.get("--sample-seed", 7)), opts.get("--unreadable-dir"))
+        meta = build(args[0], args[1], args[2], int(args[3]), int(opts.get("--sample-seed", 7)))
         print(json.dumps({k: v for k, v in meta.items() if k != "sample_answer_ids"}, indent=1))
     elif cmd == "check":
         opts = dict(zip(sys.argv[2:], sys.argv[3:]))

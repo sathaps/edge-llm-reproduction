@@ -33,7 +33,7 @@ jobs:
               subprocess.run(["gh", "run", "download", str(r["run_id"]), "--repo", "${{ github.repository }}", "--dir", str(tmp)], check=True)
               dest = pathlib.Path(r["dest"])
               for art in tmp.iterdir():
-                  src = art / "results" / "e1" if (art / "results" / "e1").exists() else art
+                  src = next((d for d in (art / "results").iterdir() if d.is_dir()), art) if (art / "results").exists() else art
                   for f in src.rglob("*"):
                       if not f.is_file() or f.name in ("chunks.jsonl", "index.db") or "_build_b" in f.parts:
                           continue

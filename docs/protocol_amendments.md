@@ -27,3 +27,17 @@ Why. The article is aimed at a magazine. A second corpus would cost two more mar
 State when decided. No E1 answer had been collected or read. `results/e1/` did not exist. The file is outside the manifest and no frozen file changed. An earlier version of this entry said the second corpus was dropped. That was corrected the same day.
 
 What stands. E1 with three repeats, E2 with the period-window cell of Amendment 1, E3, E4, the blind marking of all E1 repeat 1 answers by Sathappan, and the second marker's sample of 60.
+
+## Amendment 4, 2026-10-06: `unsupported_content` is not marked in E1 repeat 1
+
+What. The marking field `unsupported_content` is not marked in E1 repeat 1. It needs the retrieved text, and the blind sheet may not show retrieved pages, so it is not on the sheet and no second sitting is prepared for it. Whether to mark it, on all answers or on a sample, is decided by Sathappan after E1 to E4 are complete, together with the decision on the second corpus. Until then no claim in the results rests on it. The three other fields and the sheet layout follow the frozen marking rules. The sheet adds the reading columns `required_elements` and `forbidden_elements`, because the frozen rules define `complete` and `respects_applicability` against them. `respects_applicability` is greyed and blank outside applicability questions.
+
+State when decided. No marks exist. The file is outside the manifest.
+
+## Amendment 5, 2026-10-06: the five unreadable-page questions run as a separate small run
+
+What. The five questions of `questions/cummins_cfp11e_unreadable.csv` are not in E1 and not on the marking sheet. They run on the six E1 cells, three repeats, with the same pipelines and settings as E1, from `experiments/e1_unreadable.json` and `.github/workflows/e1-unreadable.yml`, both outside the manifest. Results go to `results/e1_unreadable/`. They are scored by the automatic scorer only and are labelled that way in every table. A second tab on the marking sheet is built only if the paper session asks.
+
+Each run answers the five questions in one conversation, so the conversation history differs from the 40-question E1 run. Their answers are not paired with the E1 answers.
+
+State when decided. No E1 answer had been marked.
