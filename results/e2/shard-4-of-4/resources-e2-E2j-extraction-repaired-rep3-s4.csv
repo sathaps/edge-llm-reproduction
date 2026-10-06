@@ -1,0 +1,2 @@
+experiment,cell,rep,exit_code,wall_s,pipeline_peak_rss_kb,ollama_peak_rss_kb,index_build_s,index_bytes,index_bytes_basis,answers,mean_answer_s
+e2,E2j-extraction-repaired,3,0,1169.745,308108,7951656,6.8041085,1257472,index.db,10,115.28

@@ -1,0 +1,2 @@
+experiment,cell,rep,exit_code,wall_s,pipeline_peak_rss_kb,ollama_peak_rss_kb,index_build_s,index_bytes,index_bytes_basis,answers,mean_answer_s
+e2,E2f-rewriting,2,0,7406.594,242008,13046292,7.5388248,1282048,index.db,40,170.254
