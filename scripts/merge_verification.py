@@ -97,7 +97,7 @@ def merge(delivered, returned, main, unreadable, by, on):
             q["_drop"] = True
             report["dropped"].append(qid)
         elif verdict == "ok" or (verdict == "fix" and changed):
-            q["verified_by"], q["verified_on"] = (r.get("verified_by") or by), (r.get("verified_on") or on)
+            q["verified_by"], q["verified_on"] = (r.get("verified_by") or by), (r.get("verified_on") or on).split(" ")[0]
             report["verified"].append(qid)
         elif verdict == "fix":
             report["unresolved"].append(f"{qid}: verdict fix without a changed cell; correction note: {(r.get('correction') or '').strip()[:120]}")
