@@ -20,3 +20,4 @@ Runs that failed or were cancelled stay listed in the notes with the reason. Dev
 | `amendment-3` | Second corpus deferred, `docs/protocol_amendments.md` | none | abfb791 (decided before any E1 answer was collected or read) | `docs/protocol_amendments.md` |
 | `survival-tail` | Where the cut falls: tail of the prompt sent alone (notes) | 37400903836, jobs `tail (...)`. Run 37398061246 failed on a script error and is not a result | 19b6f64 | job logs of the run, transcribed into `results/notes.md` |
 | `e1-gate-first-pass` | E1 repeat 1 sanity gate, four of six cells (notes) | 37394227689 (five cells), 37395147521 (A-mistral rerun); gate run on the collected files | 233afe0 | `results/e1/` |
+| `launch-2026-10-06` | Runs started at 04:25 UTC (notes: Launch of the remaining experiments) | 37413607526, 37413620660, 37413633953, 37413646438, 37413659604 | 467830b, 7aa29b2, d9e1f5a, 2ec946a, 6bc6729 | results are listed here when collected |

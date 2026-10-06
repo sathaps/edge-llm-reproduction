@@ -292,3 +292,15 @@ Run 37394227689 (five cells, commit 62e8c3d) and run 37395147521 (A-mistral reru
 | B-mistral | not finished | | | |
 
 Software table of the four cells: Ollama 0.35.1 in every cell, the manual file has the same SHA-256 in every cell (a6a8ea25b6ea), tinyllama has the same digest in A and B (2644915ede35), the embedding digests are those of mxbai-embed-large in A (468836162de7) and all-minilm in B (1b226e2802db). A-mistral ran from commit b41cea7 and the other cells from 62e8c3d; the Ollama version, the PDF and the model digests agree where a model appears twice. mistral appears once so far, so its digest is compared when B-mistral is collected.
+
+## Launch of the remaining experiments (04:25 UTC)
+
+At 04:21 UTC B-llama3 and B-mistral of E1 repeat 1 (run 37394227689, started 00:29) had not finished. The four finished cells (A-llama3, A-mistral, A-tinyllama, B-tinyllama) pass the gate, and both pipelines and all three models are covered by them. A hosted job stops after 6 hours, so we also started repeat 1 of the two long B cells as shards (Amendment 7). If the first jobs finish, they are the runs of record for repeat 1 and the shards stay as a check. If they stop at the limit, the sharded runs replace them and the E1 table says so. The marking sheet is built when a complete repeat 1 of all six cells exists.
+
+| Run id | Workflow | What | Commit |
+|---|---|---|---|
+| 37413607526 | e1 | repeat 1 of B-llama3 (4 shards) and B-mistral (2 shards) | 467830b |
+| 37413620660 | e1 | repeats 2 and 3 of the six cells | 7aa29b2 |
+| 37413633953 | e1-unreadable | the five unreadable-page questions, six cells, three repeats, automatic scorer only | d9e1f5a |
+| 37413646438 | e3 | model-generated and adversarial proposals, three models | 2ec946a |
+| 37413659604 | e2 | all 15 E2 cells including E2k, three repeats | 6bc6729 |
