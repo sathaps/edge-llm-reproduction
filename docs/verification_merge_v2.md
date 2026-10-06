@@ -132,3 +132,17 @@ Verifier: SA, 2026-10-05, from cummins_cfp11e_verification_pack_v2_verified.xlsx
 - required_elements after: 10 volts~10 v|replace|engine stopped~stopped|controller OFF~OFF|chargers
 - forbidden_elements (unchanged): 
 
+
+# Second round: required elements after the self-consistency check
+
+The validator now checks every verified reference answer against its own required and forbidden elements under the real scorer (scoring/run_scoring.py selfcheck). Matching: case-insensitive on normalised text; alternatives of four characters or fewer match whole words; longer alternatives match as substrings. The check flagged cd-03 (H mark), un-03, un-04 and un-05 (the scorer did not read "The manual gives no ..." as an abstention, now widened) and ur-05 (replace: the verified answer does not say it, so the element is removed). Changes made on top of that, as requested:
+
+- cd-03: H mark~high mark~H
+- ur-04: stop the engine~engine has stopped~engine is stopped~after the engine has stopped | controller OFF~controller is off~controller off (two elements)
+- sc-02: protective clothing~gloves | goggles~face shield | corrosion~corroded | out of the cells~into the cells~enter the cells
+- cd-04: outlet, inlet and isolate added; unchanged~no change~not change~remain
+- cd-05: spilled fuel~spill
+- tl-08: 36 qt~36 quarts~34 L~34 lit | 32 qt~32 quarts~30 L~30 lit
+- sc-05: AUTO/MAN~manual mode~MANUAL
+- ur-05: replace removed
+- sc-06: source pages stay 66;67 (no code treats the first page as primary)

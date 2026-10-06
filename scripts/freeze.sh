@@ -5,6 +5,9 @@
 set -euo pipefail
 tag="$1"
 python3 scoring/run_scoring.py validate questions/questions.csv
+python3 scoring/run_scoring.py validate questions/cummins_cfp11e_unreadable.csv --no-minimums
+python3 scoring/run_scoring.py selfcheck questions/questions.csv
+python3 scoring/run_scoring.py selfcheck questions/cummins_cfp11e_unreadable.csv
 python3 - <<'PY'
 import csv, sys
 rows = list(csv.DictReader(open("questions/questions.csv")))

@@ -12,7 +12,8 @@ import re
 ABSTAIN_PATTERN = re.compile(
     r"(do not|don't|doesn't|does not) know|not (covered|mentioned|specified|stated|provided|addressed)|"
     r"(cannot|can't|unable to|could not) (find|determine|answer)|no (information|mention|reference)|"
-    r"(manual|document|context|text) (does not|doesn't|do not) (cover|mention|specify|state|say|contain|include|provide|address)|"
+    r"(manual|document|context|text) (does not|doesn't|do not) (cover|mention|specify|state|say|contain|include|provide|address|give|list|have|offer)|"
+    r"(manual|document|context|text) (gives|provides|states|lists|has|offers|contains|includes|specifies) no |"
     r"(is|are) not (in|part of) (the|this) (manual|context|provided)", re.I)
 PROCEDURE_PATTERN = re.compile(r"\bstep\s*\d|(^|\s)\d+[.)]\s+[A-Z]|\bfirst\b.*\bthen\b", re.I | re.S)
 NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
@@ -23,8 +24,22 @@ def normalise(text):
     return re.sub(r"\s+", " ", re.sub(r"[^\w.%/ -]", " ", text)).strip()
 
 
+SHORT = 4  # alternatives of up to this many characters (letters and digits only) match whole words, not substrings
+
+
+def alternative_met(answer_norm, alt):
+    """Matching is case-insensitive on normalised text. A short alternative such as H, OFF or AUTO must be a whole word;
+    a longer one matches as a substring, so `ventilat` is met by `ventilate` and `ventilation`."""
+    n = normalise(alt)
+    if not n:
+        return False
+    if len(re.sub(r"[^a-z0-9]", "", n)) <= SHORT:
+        return re.search(r"(?<![\w])" + re.escape(n) + r"(?![\w])", answer_norm) is not None
+    return n in answer_norm
+
+
 def element_met(answer_norm, element):
-    return any(normalise(alt) in answer_norm for alt in element.split("~") if alt.strip())
+    return any(alternative_met(answer_norm, alt) for alt in element.split("~") if alt.strip())
 
 
 def required(question):
@@ -43,7 +58,7 @@ def in_order(answer_norm, elems):
     """True when the elements that are present first appear in the order they are listed."""
     last = -1
     for e in elems:
-        pos = [answer_norm.find(normalise(alt)) for alt in e.split("~") if alt.strip() and normalise(alt) in answer_norm]
+        pos = [answer_norm.find(normalise(alt)) for alt in e.split("~") if alt.strip() and alternative_met(answer_norm, alt)]
         if not pos:
             continue
         if min(pos) < last:

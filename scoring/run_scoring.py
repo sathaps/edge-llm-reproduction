@@ -2,6 +2,7 @@
 """Command line for the scoring steps.
 
   run_scoring.py validate questions/questions.csv
+  run_scoring.py selfcheck questions/questions.csv
   run_scoring.py retrieval questions/questions.csv OUT.csv LABEL=RUN_DIR [LABEL=RUN_DIR ...]
   run_scoring.py export questions/questions.csv OUT_DIR SEED LABEL=RUN_DIR [LABEL=RUN_DIR ...]
   run_scoring.py join MARKING_DIR OUT_DIR
@@ -33,6 +34,10 @@ def main(argv):
         for e in errs:
             print("error:", e)
         return 1 if errs else 0
+    if cmd == "selfcheck":
+        found = questions.self_check(questions.read_questions(rest[0]))
+        print("\n".join(found) or "all reference answers satisfy their own elements")
+        return 1 if found else 0
     if cmd == "retrieval":
         qs = questions.read_questions(rest[0])
         rows = []

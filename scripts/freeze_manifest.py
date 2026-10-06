@@ -9,7 +9,7 @@ import hashlib, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-FROZEN = ["questions/questions.csv", "experiments/comparisons.json", "experiments/e1.json", "config/pipelines.json",
+FROZEN = ["questions/questions.csv", "questions/cummins_cfp11e_unreadable.csv", "experiments/comparisons.json", "experiments/e1.json", "config/pipelines.json",
           "scoring/MARKING_RULES.md", "scoring/rubric.py", "scoring/questions.py", "scoring/agreement.py", "scoring/analysis.py",
           "scoring/blind_export.py", "scoring/marks.py", "scoring/summary_tables.py", "scoring/retrieval_score.py", "scoring/run_scoring.py"]
 

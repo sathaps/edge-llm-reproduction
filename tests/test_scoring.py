@@ -411,3 +411,23 @@ def test_parse_correction_splits_question_answer_pages_and_notes():
     unanswerable = mv.parse_correction("Answer: The manual does not say. Do not guess. The original claim was wrong: PDF page 111 also covers it. The question remains unanswerable.")
     assert unanswerable["answer"] == "The manual does not say. Do not guess." and unanswerable["pages"] is None
     assert mv.parse_correction("only a note")["answer"] is None
+
+
+def test_short_alternatives_match_whole_words_and_longer_ones_match_substrings():
+    import rubric
+    n = rubric.normalise("Top up to H. Turn the controller OFF, then offer help. Ventilation first.")
+    assert rubric.element_met(n, "H mark~H") and rubric.element_met(n, "OFF") and rubric.element_met(n, "ventilat")
+    assert not rubric.element_met(rubric.normalise("the heater is offered"), "H") and not rubric.element_met(rubric.normalise("offered"), "OFF")
+    assert not rubric.element_met(rubric.normalise("TB-10 is the contactor"), "TB-1") and rubric.element_met(rubric.normalise("check TB-1 first"), "TB-1")
+
+
+def test_self_check_flags_an_answer_that_misses_its_own_element():
+    row = {"id": "x", "category": "self_contained", "question": "q", "reference_answer": "Top up to H.", "source_pages": "1", "exclusion_pages": "",
+           "required_elements": "H mark~high mark", "forbidden_elements": "", "verified_by": "SA", "verified_on": "2026-10-05"}
+    assert qmod.self_check([row])[0].startswith("x: required elements not met")
+    assert qmod.self_check([{**row, "required_elements": "H mark~high mark~H"}]) == []
+    ap = {**row, "id": "y", "category": "applicability", "required_elements": "H", "forbidden_elements": "top up"}
+    assert "trips forbidden" in qmod.self_check([ap])[0]
+    un = {**row, "id": "z", "category": "unanswerable", "reference_answer": "The manual gives no value.", "required_elements": "ABSTAIN"}
+    assert qmod.self_check([un]) == []
+    assert qmod.self_check([{**un, "reference_answer": "It is 5."}])[0].startswith("z: the reference answer does not read as an abstention")

@@ -83,3 +83,22 @@ if __name__ == "__main__":
     for e in errs:
         print("error:", e)
     sys.exit(1 if errs else 0)
+
+
+def self_check(rows):
+    """Every verified reference answer must satisfy its own required_elements and trip none of its forbidden_elements,
+    under the real scorer. Returns a list of messages, empty when all rows pass."""
+    import rubric
+    problems = []
+    for r in verified(rows):
+        out = rubric.score_answer(r, r["reference_answer"])
+        if r["category"] == "unanswerable":
+            if out["abstained"] != "yes":
+                problems.append(f"{r['id']}: the reference answer does not read as an abstention")
+            continue
+        missing = [e for e in rubric.required(r) if not rubric.element_met(rubric.normalise(r["reference_answer"]), e)]
+        if missing:
+            problems.append(f"{r['id']}: required elements not met by the reference answer: {missing}")
+        if out["forbidden_found"]:
+            problems.append(f"{r['id']}: the reference answer trips forbidden elements: {out['forbidden_found']}")
+    return problems

@@ -1,3 +1,3 @@
-# name url (the primary manual; the E1 workflow fetches the first line)
-cummins_cfp11e_iom https://mart.cummins.com/imagelibrary/data/assetfiles/0063389.pdf
-# fallback: fulton_endura_xe https://fulton.com/app/uploads/2024/10/EXE-399-6000-IOM-260706.pdf
+# name url sha256 (the primary manual; the E1 workflow fetches the first line and checks the checksum)
+cummins_cfp11e_iom https://mart.cummins.com/imagelibrary/data/assetfiles/0063389.pdf a6a8ea25b6ea6e3bb929f62f0fae1b0b3f5b56057b0ed8639f11575e4bd5b403
+# fallback: fulton_endura_xe https://fulton.com/app/uploads/2024/10/EXE-399-6000-IOM-260706.pdf 567d20d51cca6e8230c950eb4f32325c2f8ebc1c67946d7f1acf74e3b68378ab
