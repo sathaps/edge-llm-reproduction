@@ -38,6 +38,8 @@ jobs:
                       if not f.is_file() or f.name in ("chunks.jsonl", "index.db") or "_build_b" in f.parts:
                           continue
                       out = dest / f.relative_to(src)
+                      if f.parent == src and f.name in ("resources.csv", "env.txt"):
+                          out = dest / f"{f.stem}-{art.name}{f.suffix}"  # one file per job, so jobs do not overwrite each other
                       out.parent.mkdir(parents=True, exist_ok=True)
                       shutil.copy(f, out)
                   for extra in art.glob("manual.sha256"):
