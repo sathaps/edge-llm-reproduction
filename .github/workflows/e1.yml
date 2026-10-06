@@ -60,10 +60,10 @@ jobs:
           ollama pull "${{ matrix.embed }}"
       - name: Fetch the manual
         run: |
-          read -r name url sha < <(grep -v '^#' manuals/chosen.txt | head -n 1)
+          read -r name url < <(grep -v '^#' manuals/chosen.txt | head -n 1)
           curl -fsSL -o manual.pdf "$url"
           sha256sum manual.pdf | tee manual.sha256
-          echo "$sha  manual.pdf" | sha256sum -c -
+          sha256sum -c manuals/chosen.sha256
       - name: Run the cell
         run: python3 scripts/run_experiment.py experiments/e1.json --pdf manual.pdf --out results/e1 --cell "${{ matrix.cell }}" --rep "${{ matrix.rep }}"
       - uses: actions/upload-artifact@v4
