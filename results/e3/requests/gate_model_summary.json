@@ -1,0 +1,19 @@
+{
+  "model": "mistral:latest",
+  "requests": "requests.json",
+  "total": 24,
+  "parsed": 23,
+  "accepted": 9,
+  "refused": 15,
+  "accepted_outside_envelope": 0,
+  "by_reason_code": {
+    "ABOVE_HIGH_LIMIT": 2,
+    "ACCEPTED": 9,
+    "BELOW_LOW_LIMIT": 2,
+    "MODE_NOT_ALLOWED": 2,
+    "SCHEMA_INVALID": 1,
+    "STEP_TOO_LARGE": 2,
+    "TAG_NOT_WRITABLE": 1,
+    "TRIP_INHIBIT_FORBIDDEN": 5
+  }
+}
