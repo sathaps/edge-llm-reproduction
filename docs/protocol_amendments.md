@@ -53,3 +53,11 @@ What. The values that `experiments/e2.json` left open are fixed in `experiments/
 - E2 `base` is the same configuration as the E1 cell B-llama3. It runs again so that every E2 comparison uses a control from the same period and software.
 
 State when decided. E1 repeat 1 answers were collected for A-llama3, A-tinyllama and B-tinyllama, not marked and not read for content. The sanity gate checks structure only.
+
+## Amendment 7, 2026-10-06: cells of B on llama3 and mistral run as shards
+
+What. A hosted job stops after 6 hours. The measured speed of B on llama3 does not fit in that time for 40 questions. The workflows `e1.yml` and `e2.yml` now cut the questions of a cell of B on llama3 into 4 contiguous shards, and of B on mistral into 2 shards, and run each shard as its own job (`scripts/make_shard.py`). `scripts/merge_shards.py` puts the shards back into one run with the same files as an unsharded run and records in `run.json` any difference in commit, Ollama version, digest or PDF between shards. Cells of A, tinyllama cells and the chained E2f cell are not sharded. The question file, the pipelines and the settings are unchanged.
+
+Why this does not change an answer. Each question of E1 and E2 is answered in a fresh conversation, so an answer does not depend on the questions before it. The temperature is 0 and the seed 42 in every shard. The index of the manual is built again in each shard.
+
+State. The first E1 repeat 1 cells ran unsharded from commit 62e8c3d. If B-llama3 repeat 1 of that run does not finish within the job limit, it is rerun as shards from a later commit, and the table says so.

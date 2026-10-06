@@ -44,6 +44,14 @@ jobs:
               m = c["model"]
               return params[m[1:]] if m.startswith("$") else m
           include = [{"cell": c["id"], "model": model(c), "embed": "all-minilm:latest", "rep": r} for r in reps for c in cells]
+          # A cell of B on llama3 needs more than the 6 hours a hosted job may run. Its questions are answered one after the
+          # other in fresh conversations, so it is cut into shards that run as separate jobs and are merged afterwards.
+          def shards(c, m):
+              if c.get("conversation") == "chained" or c["impl"] != "b":
+                  return 1
+              return 4 if m.startswith("llama3") else (2 if "mistral" in m else 1)
+          by_id = {c["id"]: c for c in cells}
+          include = [dict(i, shards=shards(by_id[i["cell"]], i["model"]), shard=k) for i in include for k in range(1, shards(by_id[i["cell"]], i["model"]) + 1)]
           print("matrix=" + json.dumps({"include": include}))
           PY
 
@@ -75,19 +83,20 @@ jobs:
           curl -fsSL -o manual.pdf "$url"
           sha256sum manual.pdf | tee manual.sha256
           sha256sum -c manuals/chosen.sha256
+      - name: Cut the questions of this shard
+        run: python3 scripts/make_shard.py questions/questions.csv "${{ matrix.shard }}" "${{ matrix.shards }}" shard_questions.csv
       - name: Run the cell
         run: |
-          python3 - <<'PY' >> "$GITHUB_ENV"
-          import json
-          for k, v in json.load(open("experiments/e2_params.json")).items():
-              print(f"{k}={v}")
-          PY
-          python3 scripts/run_experiment.py experiments/e2.json --pdf manual.pdf --out results/e2 --cell "${{ matrix.cell }}" --rep "${{ matrix.rep }}"
+          eval "$(python3 -c 'import json, shlex; [print(f"export {k}={shlex.quote(v)}") for k, v in json.load(open("experiments/e2_params.json")).items()]')"
+          if [ "${{ matrix.shards }}" -gt 1 ]; then OUT=results/e2_shards/shard-${{ matrix.shard }}-of-${{ matrix.shards }}; else OUT=results/e2; fi
+          python3 scripts/run_experiment.py experiments/e2.json --questions shard_questions.csv --pdf manual.pdf --out "$OUT" --cell "${{ matrix.cell }}" --rep "${{ matrix.rep }}"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: e2-${{ matrix.cell }}-rep${{ matrix.rep }}
+          name: e2-${{ matrix.cell }}-rep${{ matrix.rep }}-s${{ matrix.shard }}
           path: |
             results/e2
+            results/e2_shards
             manual.sha256
             !results/e2/_build_b
+            !results/e2_shards/*/_build_b
