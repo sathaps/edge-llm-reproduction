@@ -3,8 +3,8 @@
 
 usage: check_survival_tail.py <out-dir> <model>
 Part 1 (B's shape). B's template with eight generated pages, a code word every 10 sentences. One question per code word
-asks which code word follows its label. The first code of the longest run of correct answers that reaches the end of the
-prompt is the first one the model reads. The prompt text from that label to the end is then sent alone, with the same
+asks which code word follows its label. The first code of the longest run of correct answers (the latest one on a tie) is taken as the first one the model
+reads. Misses after the run are reported in the log and do not change this. The prompt text from that label to the end is then sent alone, with the same
 window and num_predict 1, and its prompt_eval_count is compared with the prompt_eval_count of the full prompt. The tail
 from the last code that was not read is sent too. If the model starts reading where the cut falls, the first tail is
 close to the full count and the second is not smaller than it.
@@ -69,13 +69,21 @@ def part1(model, cfg, rows):
         reply, used = chat(model, [{"role": "user", "content": prompt(n)}])
         results[n] = code(n) in reply.upper().replace(" ", "")
         print(json.dumps({"model": model, "part": 1, "code_no": n, "correct": results[n], "tokens_used": used}), flush=True)
-    first = len(numbers)
-    for n in reversed(numbers):
-        if not results[n]:
-            break
-        first = n
+    best, run_start, first, best_len = None, None, None, 0
+    for n in numbers + [None]:
+        if n is not None and results[n]:
+            run_start = n if run_start is None else run_start
+            continue
+        if run_start is not None:
+            length = (n if n is not None else len(numbers)) - run_start
+            if length >= best_len:
+                first, best_len = run_start, length
+        run_start = None
+    if first is None:
+        print(json.dumps({"model": model, "check": "no code was read"}), flush=True)
+        return
     window = cp.window(model)
-    full_used = chat(model, [{"role": "user", "content": prompt(first)}])[1] if first < len(numbers) else None
+    full_used = chat(model, [{"role": "user", "content": prompt(first)}])[1]
     checks = [("first code read", first)] + ([("last code not read", first - 1)] if first > 0 else [])
     for name, n in checks:
         text = prompt(n)
