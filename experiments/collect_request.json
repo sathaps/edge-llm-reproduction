@@ -1,1 +1,7 @@
-{"runs": [{"run_id": 37394227689, "dest": "results/e1"}], "note": "wake-up 04:20"}
+{"runs": [
+ {"run_id": 37394227689, "dest": "results/e1"},
+ {"run_id": 37413607526, "dest": "results/e1"},
+ {"run_id": 37413620660, "dest": "results/e1"},
+ {"run_id": 37413633953, "dest": "results/e1_unreadable"},
+ {"run_id": 37413659604, "dest": "results/e2"}
+], "note": "wake-up 09:30"}
