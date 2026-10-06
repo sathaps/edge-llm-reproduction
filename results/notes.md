@@ -255,3 +255,40 @@ Run 37387498181, job `chat`, commit 93573ef, Ollama 0.3.14, `llama3:latest`, ass
 | B | 8 | 6008 | 1036 | 4972 | yes |
 
 On 0.3.14 the llama3 prompt is also cut to 1036 tokens, about half of the 2048 window, as on 0.35.1 with the 4096 window (2060 used). The window default differs between the two versions (2048 assumed here, 4096 on 0.35.1) and the cut is the same fraction. We did not read the window from the server on 0.3.14.
+
+## Where the cut falls: tail of the prompt sent alone
+
+Run 37400903836 (`survival-tail`), commit 19b6f64, Ollama 0.35.1, default window 4096. B's template with eight generated pages and 40 numbered codes, one question per code. The tail is the prompt text from a code's label to the end, sent alone with the same window.
+
+| Model | Tokens used by the full prompt | First code read | Tail from the first code read | Last code not read | Tail from the last code not read | Codes read (of 40) |
+|---|---|---|---|---|---|---|
+| llama3 | 2060 | 28 | 1991 | 27 | 2153 | 11 |
+| mistral | 2051 | 31 | 1854 | 30 | 2057 | 9 |
+
+For both models the tokens used by the full prompt lie between the two tail counts. The tail from the first code read is smaller than the tokens used (llama3 by 69, mistral by 197) and the tail from the last code not read is larger (llama3 by 93, mistral by 6). The codes are about 160 tokens apart, so the cut falls between the two labels, as the model's answers say. The counts match.
+
+llama3 did not read code 39, the last one before the question, and mistral read it. We do not use the answer to a single code as evidence of where the cut falls.
+
+A's shape, one system message and one user message that starts with the question followed by the pages:
+
+| Model | Code in the system message | Code at the start of the user message |
+|---|---|---|
+| llama3 | read | not read |
+| mistral | not read | not read |
+
+llama3 keeps the system message and loses the start of the user message. mistral loses both. In B the instruction is the start of the single user message and is cut first. In A the question is at the start of the user message and can be cut when the message is long.
+
+## E1 repeat 1: sanity gate, first pass (03:25 UTC, four of six cells)
+
+Run 37394227689 (five cells, commit 62e8c3d) and run 37395147521 (A-mistral rerun, commit b41cea7), collected into `results/e1/`. `scripts/e1_gate.py` checks that each cell has 40 answers in the order of the question file, that no answer is an error, a timeout or an HTTP error recorded as text, that tokens offered, tokens used, the truncation flag and the window are present for every question, that retrieval rows exist for every question, and that `run.json` names the commit, the Ollama version and the model digest. It reads no marks and judges no answer for accuracy. The unreadable-page questions are not part of this gate. They run separately.
+
+| Cell | Answers | Empty answers | Questions with a cut prompt (of 40) | Gate |
+|---|---|---|---|---|
+| A-llama3 | 40 | 0 | 0 | pass |
+| A-mistral | 40 | 0 | 0 | pass |
+| A-tinyllama | 40 | 0 | 2 | pass |
+| B-tinyllama | 40 | 0 | 32 | pass |
+| B-llama3 | not finished | | | |
+| B-mistral | not finished | | | |
+
+Software table of the four cells: Ollama 0.35.1 in every cell, the manual file has the same SHA-256 in every cell (a6a8ea25b6ea), tinyllama has the same digest in A and B (2644915ede35), the embedding digests are those of mxbai-embed-large in A (468836162de7) and all-minilm in B (1b226e2802db). A-mistral ran from commit b41cea7 and the other cells from 62e8c3d; the Ollama version, the PDF and the model digests agree where a model appears twice. mistral appears once so far, so its digest is compared when B-mistral is collected.
