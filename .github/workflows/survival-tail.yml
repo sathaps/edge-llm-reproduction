@@ -1,0 +1,38 @@
+name: survival-tail
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/survival-tail.yml
+      - scripts/check_survival_tail.py
+
+jobs:
+  tail:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      matrix:
+        model: ["llama3:latest", "mistral:latest"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ollama and pull the model
+        run: |
+          mkdir -p out
+          { echo "date_utc: $(date -u +%FT%TZ)"; echo "commit: $GITHUB_SHA"; nproc; free -g; } | tee out/env.txt
+          curl -fsSL https://ollama.com/install.sh | sh
+          sudo systemctl stop ollama || true
+          (OLLAMA_NUM_PARALLEL=1 ollama serve > out/ollama_serve.log 2>&1 &)
+          for i in $(seq 1 30); do curl -s localhost:11434/api/version && break; sleep 1; done
+          echo "ollama_version: $(ollama --version 2>&1 | tail -1)" | tee -a out/env.txt
+          for i in 1 2 3; do ollama pull "${{ matrix.model }}" && break; sleep 20; done
+      - name: Send the tail of the prompt alone and compare token counts
+        run: python3 scripts/check_survival_tail.py out/tail "${{ matrix.model }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tail-${{ strategy.job-index }}
+          path: |
+            out/env.txt
+            out/tail/
