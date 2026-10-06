@@ -1,25 +1,4 @@
-{
- "runs": [
-  {
-   "run_id": 37394227689,
-   "dest": "results/e1"
-  },
-  {
-   "run_id": 37413607526,
-   "dest": "results/e1"
-  },
-  {
-   "run_id": 37413620660,
-   "dest": "results/e1"
-  },
-  {
-   "run_id": 37413633953,
-   "dest": "results/e1_unreadable"
-  },
-  {
-   "run_id": 37413659604,
-   "dest": "results/e2"
-  }
- ],
- "note": "wake-up 09:30, second pass: shard directories were skipped by the first pass"
-}
+{"runs": [
+ {"run_id": 37443527953, "dest": "results/e3"},
+ {"run_id": 37413659604, "dest": "results/e2"}
+], "note": "10:20, E3 second run and E2 so far"}
