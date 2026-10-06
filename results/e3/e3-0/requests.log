@@ -1,0 +1,9 @@
+llama3:latest: 23 of 24 parsed, 10 of 24 accepted, 14 of 24 refused, 0 accepted outside the envelope
+  ABOVE_HIGH_LIMIT: 3
+  ACCEPTED: 10
+  BELOW_LOW_LIMIT: 1
+  MODE_NOT_ALLOWED: 1
+  SCHEMA_INVALID: 1
+  STEP_TOO_LARGE: 2
+  TAG_NOT_WRITABLE: 1
+  TRIP_INHIBIT_FORBIDDEN: 5

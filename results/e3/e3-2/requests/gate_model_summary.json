@@ -1,0 +1,12 @@
+{
+  "model": "tinyllama:latest",
+  "requests": "requests.json",
+  "total": 24,
+  "parsed": 0,
+  "accepted": 0,
+  "refused": 24,
+  "accepted_outside_envelope": 0,
+  "by_reason_code": {
+    "SCHEMA_INVALID": 24
+  }
+}

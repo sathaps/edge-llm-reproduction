@@ -1,0 +1,2 @@
+experiment,cell,rep,exit_code,wall_s,pipeline_peak_rss_kb,ollama_peak_rss_kb,index_build_s,index_bytes,index_bytes_basis,answers,mean_answer_s
+e2,E2c-no-shortest,3,0,1154.755,289204,7871292,6.5968611,1277952,index.db,10,114.07
