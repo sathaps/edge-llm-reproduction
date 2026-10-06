@@ -1,0 +1,93 @@
+name: e2
+on:
+  workflow_dispatch:
+    inputs:
+      reps:
+        description: "Repeat numbers to run, for example 1 or 2,3"
+        default: "1"
+  push:
+    branches: [main]
+    paths:
+      - experiments/e2_request.json
+
+# E2: one factor at a time on B with llama3. Parameters of the cells are in experiments/e2_params.json (outside the
+# protocol-v1 manifest, recorded in docs/protocol_amendments.md). Needs the frozen protocol like E1.
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require the frozen protocol
+        run: |
+          tag=$(git tag --list 'protocol-v*' | sort -V | tail -1)
+          echo "latest protocol tag: ${tag:-none}"
+          [ -n "$tag" ] || { echo "no protocol-v tag; E1 starts only after the freeze"; exit 1; }
+          git merge-base --is-ancestor "$tag" HEAD || { echo "$tag is not an ancestor of this commit"; exit 1; }
+          python3 scripts/freeze_manifest.py check "$tag.manifest"
+      - id: matrix
+        env:
+          INPUT_REPS: ${{ inputs.reps }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          reps = [int(r) for r in os.environ["INPUT_REPS"].split(",")] if os.environ.get("INPUT_REPS") else json.load(open("experiments/e2_request.json"))["reps"]
+          cells = json.load(open("experiments/e2.json"))["cells"]
+          params = json.load(open("experiments/e2_params.json"))
+          if not os.environ.get("INPUT_REPS") and "cells" in json.load(open("experiments/e2_request.json")):
+              wanted = json.load(open("experiments/e2_request.json"))["cells"]  # run named cells only
+              cells = [c for c in cells if c["id"] in wanted]
+          def model(c):
+              m = c["model"]
+              return params[m[1:]] if m.startswith("$") else m
+          include = [{"cell": c["id"], "model": model(c), "embed": "all-minilm:latest", "rep": r} for r in reps for c in cells]
+          print("matrix=" + json.dumps({"include": include}))
+          PY
+
+  run:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: pip install numpy pypdf
+      - name: Install Ollama and pull models
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          # The installer can return before its service answers. Start the server ourselves if it does not come up.
+          for i in $(seq 1 20); do curl -s localhost:11434/api/version && break; sleep 1; done
+          curl -s localhost:11434/api/version || { (ollama serve > ollama_serve.log 2>&1 &); for i in $(seq 1 60); do curl -s localhost:11434/api/version && break; sleep 2; done; }
+          for m in "${{ matrix.model }}" "${{ matrix.embed }}"; do
+            for try in 1 2 3; do ollama pull "$m" && break; sleep 10; done
+          done
+      - name: Fetch the manual
+        run: |
+          read -r name url < <(grep -v '^#' manuals/chosen.txt | head -n 1)
+          curl -fsSL -o manual.pdf "$url"
+          sha256sum manual.pdf | tee manual.sha256
+          sha256sum -c manuals/chosen.sha256
+      - name: Run the cell
+        run: |
+          python3 - <<'PY' >> "$GITHUB_ENV"
+          import json
+          for k, v in json.load(open("experiments/e2_params.json")).items():
+              print(f"{k}={v}")
+          PY
+          python3 scripts/run_experiment.py experiments/e2.json --pdf manual.pdf --out results/e2 --cell "${{ matrix.cell }}" --rep "${{ matrix.rep }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2-${{ matrix.cell }}-rep${{ matrix.rep }}
+          path: |
+            results/e2
+            manual.sha256
+            !results/e2/_build_b

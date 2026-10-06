@@ -1,0 +1,8 @@
+{
+ "E2_MODEL": "llama3:latest",
+ "E2_MODEL_SMALL": "tinyllama:latest",
+ "E2_MODEL_LARGE": "mistral:latest",
+ "E2_MAX_DISTANCE": "1.0",
+ "E2_HEADING": "(?<![\\\\w/])(?<!see )(?<!Section )(?<!and )\\\\d{1,2}(?:\\\\.\\\\d{1,2}){1,3} (?=[A-Z][A-Za-z/-]+ )(?![^.]{1,80}(?:\\\\. ){3})|(?<=[.:!] )To (?:perform|start|stop|check|replace|test|clean|drain|fill|change|adjust|reset|set|access|install|remove|prime|bleed|measure) [^.:]{3,100}:",
+ "E2_STEP": "(?<=[.;:!] )\\\\(?\\\\d{1,2}[.)] (?=[A-Z])"
+}

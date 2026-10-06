@@ -41,3 +41,15 @@ What. The five questions of `questions/cummins_cfp11e_unreadable.csv` are not in
 Each run answers the five questions in one conversation, so the conversation history differs from the 40-question E1 run. Their answers are not paired with the E1 answers.
 
 State when decided. No E1 answer had been marked.
+
+## Amendment 6, 2026-10-06: parameters of the E2 cells
+
+What. The values that `experiments/e2.json` left open are fixed in `experiments/e2_params.json`, outside the manifest, and E2k is wired into `experiments/e2.json` as Amendment 1 said. E2 runs from `.github/workflows/e2.yml`, which needs the frozen protocol like E1.
+
+- Base model of E2: `llama3:latest` (`results/notes.md`, budget section). E2e small cell: `tinyllama:latest`. E2e large cell: `mistral:latest`.
+- E2k, `E2k-period-window`: B on llama3 with `generation.num_ctx=2048`. Its planned comparison P17 is in `experiments/comparisons_amendment.json`: the E1 cell B-llama3 against E2k, same repeat number, paired by question. Holm is applied over all 17 tests.
+- E2d threshold: `retrieval.max_distance` 1.0. B's distances are Euclidean distances of all-minilm vectors. The value is the median of the best-hit distance over the 40 questions in B-tinyllama repeat 1 (1.013), rounded down. It was taken from the retrieval rows only. Retrieval does not depend on the chat model, and no mark or accuracy was looked at. About half of the questions lose all their context under this threshold.
+- E2a procedure chunking: the heading pattern splits the flattened page text at section numbers such as `4.3.2.2 OVERSPEED TEST` (not in the table of contents, not after "see", "Section" or "and") and at sentences that start `To perform ...:`. The step pattern cuts a long section at numbered steps. Both are in `experiments/e2_params.json`. On the manual's page text they give 141 chunks, median length 694 characters, four longer than 6,000 characters. A numbered row of a torque table is cut wrongly once. We leave it.
+- E2 `base` is the same configuration as the E1 cell B-llama3. It runs again so that every E2 comparison uses a control from the same period and software.
+
+State when decided. E1 repeat 1 answers were collected for A-llama3, A-tinyllama and B-tinyllama, not marked and not read for content. The sanity gate checks structure only.

@@ -105,6 +105,14 @@
       "set": [
         "extraction.repair_shift=true"
       ]
+    },
+    {
+      "id": "E2k-period-window",
+      "impl": "b",
+      "model": "$E2_MODEL",
+      "set": [
+        "generation.num_ctx=2048"
+      ]
     }
   ]
 }

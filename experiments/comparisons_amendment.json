@@ -1,0 +1,13 @@
+{
+ "note": "Amendment 1 (docs/protocol_amendments.md). P17 is added to the 16 tests of experiments/comparisons.json, which stays unchanged. Holm is applied over all 17.",
+ "comparisons": [
+  {
+   "id": "P17",
+   "family": "E2 period window",
+   "a": "B-llama3",
+   "b": "E2k-period-window",
+   "rep": "matched",
+   "data": "E1 B-llama3 and E2k, same repeat number, paired by question, McNemar exact on the marked outcome"
+  }
+ ]
+}
