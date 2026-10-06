@@ -17,3 +17,4 @@ Every table in `results/summary.md` and every measured table in `results/notes.m
 
 Runs that failed or were cancelled stay listed in the notes with the reason. Development-container runs are debugging runs and are never listed here as results.
 | `amendment-1` | Protocol amendment 1 (E2k, original window) and amendment 2 (survival arithmetic), `docs/protocol_amendments.md` | none | 1f2329e (added before any E1 answer was collected or read) | `docs/protocol_amendments.md` |
+| `amendment-3` | Second corpus not run, `docs/protocol_amendments.md` | none | abfb791 (decided before any E1 answer was collected or read) | `docs/protocol_amendments.md` |
