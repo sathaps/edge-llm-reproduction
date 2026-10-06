@@ -304,3 +304,21 @@ At 04:21 UTC B-llama3 and B-mistral of E1 repeat 1 (run 37394227689, started 00:
 | 37413633953 | e1-unreadable | the five unreadable-page questions, six cells, three repeats, automatic scorer only | d9e1f5a |
 | 37413646438 | e3 | model-generated and adversarial proposals, three models | 2ec946a |
 | 37413659604 | e2 | all 15 E2 cells including E2k, three repeats | 6bc6729 |
+
+## E1 repeats 1 to 3: collection, gate and software (10:15 UTC)
+
+Collected into `results/e1/`: run 37394227689 (repeat 1, five cells, commit 62e8c3d), run 37395147521 (A-mistral repeat 1, commit b41cea7), run 37413607526 (repeat 1 of B-llama3 as 4 shards and B-mistral as 2 shards, commit 467830b, kept as a check), run 37413620660 (repeats 2 and 3, commit 7aa29b2). The first jobs of B-llama3 and B-mistral finished within the job limit, so they are the runs of record for repeat 1.
+
+Sanity gate (`scripts/e1_gate.py`), repeats 1, 2 and 3: every cell has 40 answers in the order of the question file, no answer is an error recorded as text, tokens offered, tokens used, the truncation flag and the window are present for every question, retrieval rows exist for every question, and `run.json` names the commit, the Ollama version and the model digest. The gate passes for all six cells in all three repeats.
+
+Questions with a cut prompt, of 40, the same in repeats 1, 2 and 3: A-llama3 0, A-mistral 0, A-tinyllama 2, B-llama3 4, B-mistral 5, B-tinyllama 32. Empty answers: 0 in every cell.
+
+Software (`scripts/e1_table.py`): Ollama 0.35.1 in every cell of every repeat. The manual file has the same SHA-256 in every cell. The model digests are the same wherever a model appears more than once: llama3 365c0bd3c000, mistral 6577803aa9a0, tinyllama 2644915ede35. The embedding digests are 468836162de7 (mxbai-embed-large, A) and 1b226e2802db (all-minilm, B). The A-mistral rerun from commit b41cea7 has the same Ollama version and the same mistral digest as B-mistral, which ran from commit 62e8c3d.
+
+### Repeat-to-repeat and shard differences
+
+Temperature is 0 and the seed 42 in every run, and answers are still not always identical. After whitespace is collapsed, the number of questions of 40 whose answer is identical in repeats 1, 2 and 3: A-llama3 13, B-llama3 37, B-tinyllama 27. Repeat 1 of B-llama3 as shards against the unsharded run: 38 of 40 identical answers, retrieval identical for 40 of 40. B-mistral: 34 of 40, retrieval identical for 40 of 40. The counts are from `results/e1/`; no mark is involved. We report E1 per repeat and do not treat a single run as the answer a model always gives.
+
+### Marking sheet
+
+Built from repeat 1 of the six cells (unsharded runs of record), seed 4242, in the private repository under `verification/`: 237 distinct answers of 240 (three identical answers merged). Per category: self_contained 48, condition_dependent 45, applicability 48, unanswerable 48, table_lookup 48. One tab, 40 questions. Key file SHA-256, recorded before marking: `a9801bfe50c5f961da2170e68e1a7aa27866ad94c9e8ac645f48068e8886136c`. The second-marker sample has 60 answers: 12 per category and 10 per cell, seed 7. The check script accepts a filled copy of the real sheet and of the sample, and refuses a copy with an empty cell or a value outside the lists, naming the rows. No sheet cell names a model, a cell, a run or a retrieved page.

@@ -5,7 +5,8 @@ usage: merge_shards.py <results-dir>
 Reads <dir>/shard-K-of-N/<cell>/rep-R/ for every shard of a cell and repeat, and writes <dir>/<cell>/rep-R/ with answers.jsonl,
 retrieval.jsonl, stdout.txt, run.json and garbled.json. A cell with a missing shard is not merged and is named. run.json keeps
 the first shard's values, adds "shards", and records in "shard_mismatch" any of commit, Ollama version, digests and PDF that
-differ between shards. The question counts of garbled.json are summed.
+differ between shards. The question counts of garbled.json are summed. When an unsharded run of the same cell and
+repeat exists, the merged shards go to <dir>/merged_shard_check/ and the unsharded run is left as it is.
 """
 import json, re, sys
 from collections import defaultdict
@@ -30,6 +31,8 @@ def merge(root):
             missing.append(f"{cell}/{rep}: shards {sorted(shards)} of {n}")
             continue
         out = root / cell / rep
+        if (out / "run.json").exists() and "shards" not in json.load(open(out / "run.json")):
+            out = root / "merged_shard_check" / cell / rep  # an unsharded run of the same cell and repeat stays the run of record
         out.mkdir(parents=True, exist_ok=True)
         ordered = [shards[k] for k in range(1, n + 1)]
         for name in ("answers.jsonl", "retrieval.jsonl", "stdout.txt"):
