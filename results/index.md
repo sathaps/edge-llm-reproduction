@@ -16,3 +16,4 @@ Every table in `results/summary.md` and every measured table in `results/notes.m
 | `e1-repeat-1` | E1 table, repeat 1 (summary: E1; notes: E1 repeat 1) | 37394227689 (five cells, commit 62e8c3d); A-mistral rerun from commit b41cea7 (run 37395147521) | 62e8c3d, b41cea7; protocol-v1 at 07f4a33 | `results/e1/` |
 
 Runs that failed or were cancelled stay listed in the notes with the reason. Development-container runs are debugging runs and are never listed here as results.
+| `amendment-1` | Protocol amendment 1 (E2k, original window) and amendment 2 (survival arithmetic), `docs/protocol_amendments.md` | none | 1f2329e (added before any E1 answer was collected or read) | `docs/protocol_amendments.md` |

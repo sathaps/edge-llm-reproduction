@@ -4,7 +4,7 @@ An amendment is added after the freeze of `protocol-v1`. It never changes a file
 
 ## Amendment 1, 2026-10-06: E2 cell with the original window
 
-What. One E2 cell is added: B on llama3 with `num_ctx` 2048, everything else as in E1 (same questions, same Cummins manual, mxbai-free B settings of the B-llama3 cell, temperature 0, seed 42, 3 repeats). Name: E2k. Its planned comparison, number P17, is E2k against the B-llama3 baseline of E1, paired by question, McNemar exact test on the marked outcome, with the Holm correction applied over all planned comparisons including P17.
+What. One E2 cell is added: B on llama3 with `num_ctx` 2048, everything else as in E1 (same questions, same Cummins manual, settings of the B-llama3 cell (all-minilm embeddings), temperature 0, seed 42, 3 repeats). Name: E2k. Its planned comparison, number P17, is E2k against the B-llama3 baseline of E1, paired by question, McNemar exact test on the marked outcome, with the Holm correction applied over all planned comparisons including P17.
 
 Why. On Ollama 0.3.14, the period of the original builds, llama3 ran with a 2048 window and the B prompt was cut to 1036 tokens from 3 pages up (run 37387498181, `results/notes.md`, check 3 addition). On 0.35.1 the window is 4096 and a B prompt of 5 pages can fit. E1 as frozen is therefore milder than the original on this point. E2k restores the original window on the current software.
 
