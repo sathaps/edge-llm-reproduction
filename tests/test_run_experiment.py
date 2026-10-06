@@ -82,3 +82,18 @@ def test_rep_filter_runs_only_the_named_repeats(pdf_path, url, stub, tmp_path):
     assert rx.main([str(exp), "--pdf", str(pdf_path), "--out", str(out), "--ollama", url, "--questions", str(q), "--rep", "2", "--rep", "3"]) == 0
     assert [r["rep"] for r in csv.DictReader(open(out / "resources.csv"))] == ["2", "3"]
     assert not (out / "A-x" / "rep-1").exists()
+
+
+def test_e1_table_reports_software_differences(tmp_path):
+    import json, e1_table
+    for cell, version, digest in (("A-llama3", "0.35.1", "365c0bd3c000"), ("B-llama3", "0.35.1", "365c0bd3c000"), ("A-mistral", "0.35.1", "6577803aa9a0")):
+        d = tmp_path / cell / "rep-1"
+        d.mkdir(parents=True)
+        json.dump({"commit": "62e8c3d0", "ollama_version": version, "model": cell.split("-")[1] + ":latest", "model_digest": digest + "ffff",
+                   "embedding_digest": "468836162de7aaaa" if cell.startswith("A") else "1b226e2802db0000", "pdf_sha256": "a6a8ea25b6ea6e3b"}, open(d / "run.json", "w"))
+    t = e1_table.rows(tmp_path)
+    assert len(t) == 3 and e1_table.differences(t) == []
+    json.dump({"commit": "b41cea7", "ollama_version": "0.35.2", "model": "mistral:latest", "model_digest": "6577803aa9a0", "embedding_digest": "468836162de7", "pdf_sha256": "a6a8ea25b6ea6e3b"},
+              open(tmp_path / "A-mistral" / "rep-1" / "run.json", "w"))
+    assert e1_table.differences(e1_table.rows(tmp_path)) == ["ollama differs: ['0.35.1', '0.35.2']"]
+    assert "| A-mistral | 1 | b41cea7 |" in e1_table.render(e1_table.rows(tmp_path))

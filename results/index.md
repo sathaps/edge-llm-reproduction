@@ -14,3 +14,4 @@ Every table in `results/summary.md` and every measured table in `results/notes.m
 | `period-ollama` | Legacy endpoint and embedding truncation on Ollama 0.3.14 (notes, check 3) | 37387498181, job `embeddings` | 93573ef | `results/run-37387498181-ollama-period/` |
 
 Runs that failed or were cancelled stay listed in the notes with the reason. Development-container runs are debugging runs and are never listed here as results.
+| `e1-repeat-1` | E1 table, repeat 1 (summary: E1; notes: E1 repeat 1) | 37394227689 (five cells, commit 62e8c3d); A-mistral rerun from commit b41cea7 (run id to come) | 62e8c3d, b41cea7; protocol-v1 at 07f4a33 | `results/e1/` |
