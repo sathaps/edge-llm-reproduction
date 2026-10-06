@@ -1,0 +1,14 @@
+date_utc: 2026-10-06T05:14:55Z
+commit: d9e1f5aa8a22a73998a7335cdf7580bc806b9968
+--- nproc
+4
+--- free -g
+total        used        free      shared  buff/cache   available
+Mem:              15           1           4           0          10          14
+Swap:              2           0           2
+--- lscpu
+CPU(s):                                  4
+Model name:                              Intel(R) Xeon(R) 6973P-C
+CPU(s) scaling MHz:                      156%
+--- ollama version: {"version":"0.35.1"}
+--- ollama tags: {"models":[{"name":"all-minilm:latest","model":"all-minilm:latest","modified_at":"2026-10-06T05:14:54.405771175Z","size":45960996,"digest":"1b226e2802dbb772b5fc32a58f103ca1804ef7501331012de126ab22f67475ef","details":{"parent_model":"","format":"gguf","family":"bert","families":["bert"],"parameter_size":"23M","quantization_level":"F16","context_length":512,"embedding_length":384},"capabilities":["embedding"]},{"name":"mistral:latest","model":"mistral:latest","modified_at":"2026-10-06T05:14:51.702787717Z","size":4372824384,"digest":"6577803aa9a036369e481d648a2baebb381ebc6e897f2bb9a766a2aa7bfbc1cf","details":{"parent_model":"","format":"gguf","family":"llama","families":["llama"],"parameter_size":"7.2B","quantization_level":"Q4_K_M","context_length":32768,"embedding_length":4096},"capabilities":["completion","tools"]}]}

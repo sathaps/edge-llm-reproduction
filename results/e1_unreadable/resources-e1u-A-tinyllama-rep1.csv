@@ -1,0 +1,2 @@
+experiment,cell,rep,exit_code,wall_s,pipeline_peak_rss_kb,ollama_peak_rss_kb,index_build_s,index_bytes,index_bytes_basis,answers,mean_answer_s
+e1_unreadable,A-tinyllama,1,0,471.994,172844,1687852,212.1038236618042,231029,chunks.jsonl,5,44.283

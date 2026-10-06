@@ -1,0 +1,10 @@
+{"question_id":"ap-05","query_used":"Does the oil level gauge adjustment procedure apply to a CFP30E?","mode":"retrieve","given_text":null,"retrieved":[]}
+{"question_id":"ap-06","query_used":"My engine is mechanical. Can I set an engine cooldown time at the panel?","mode":"retrieve","given_text":null,"retrieved":[{"chunk_id":"p0070","pages":[70],"score":null,"distance":0.91131306}]}
+{"question_id":"ap-07","query_used":"Can the RPM ADJUSTMENT screen be used to trim the speed of a mechanical engine?","mode":"retrieve","given_text":null,"retrieved":[{"chunk_id":"p0067","pages":[67],"score":null,"distance":0.9514741}]}
+{"question_id":"ap-08","query_used":"My radiator-cooled engine shows cooling loop sensor values on the display. Should I act on them?","mode":"retrieve","given_text":null,"retrieved":[{"chunk_id":"p0060","pages":[60],"score":null,"distance":0.9399599}]}
+{"question_id":"un-01","query_used":"What is the displacement of the CFP11E in litres?","mode":"retrieve","given_text":null,"retrieved":[]}
+{"question_id":"un-02","query_used":"What does a new CFP11E engine cost?","mode":"retrieve","given_text":null,"retrieved":[]}
+{"question_id":"un-03","query_used":"What belt tension should I set on the coolant pump and alternator drive belt?","mode":"retrieve","given_text":null,"retrieved":[{"chunk_id":"p0086","pages":[86],"score":null,"distance":0.8386845},{"chunk_id":"p0093","pages":[93],"score":null,"distance":0.9730259}]}
+{"question_id":"un-04","query_used":"What are the valve lash settings?","mode":"retrieve","given_text":null,"retrieved":[]}
+{"question_id":"un-05","query_used":"What is the maximum axial end-play allowed on the turbocharger shaft?","mode":"retrieve","given_text":null,"retrieved":[]}
+{"question_id":"un-06","query_used":"What is the total engine oil system capacity of a CFP23E?","mode":"retrieve","given_text":null,"retrieved":[]}

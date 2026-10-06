@@ -1,0 +1,14 @@
+date_utc: 2026-10-06T08:16:20Z
+commit: 6bc6729ca53bea4f7cae62876d5f922a2cd7eb35
+--- nproc
+4
+--- free -g
+total        used        free      shared  buff/cache   available
+Mem:              15           1           3           0          10          14
+Swap:              2           0           2
+--- lscpu
+CPU(s):                                  4
+Model name:                              INTEL(R) XEON(R) PLATINUM 8573C
+CPU(s) scaling MHz:                      152%
+--- ollama version: {"version":"0.35.1"}
+--- ollama tags: {"models":[{"name":"all-minilm:latest","model":"all-minilm:latest","modified_at":"2026-10-06T08:16:19.192137123Z","size":45960996,"digest":"1b226e2802dbb772b5fc32a58f103ca1804ef7501331012de126ab22f67475ef","details":{"parent_model":"","format":"gguf","family":"bert","families":["bert"],"parameter_size":"23M","quantization_level":"F16","context_length":512,"embedding_length":384},"capabilities":["embedding"]},{"name":"llama3:latest","model":"llama3:latest","modified_at":"2026-10-06T08:16:16.783145802Z","size":4661224676,"digest":"365c0bd3c000a25d28ddbf732fe1c6add414de7275464c4e4d1c3b5fcb5d8ad1","details":{"parent_model":"","format":"gguf","family":"llama","families":["llama"],"parameter_size":"8.0B","quantization_level":"Q4_0","context_length":8192,"embedding_length":4096},"capabilities":["completion"]}]}

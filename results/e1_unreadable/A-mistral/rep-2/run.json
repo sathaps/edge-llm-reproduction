@@ -1,0 +1,46 @@
+{
+ "implementation": "a",
+ "settings": {
+  "temperature": 0,
+  "seed": 42,
+  "embedding_model": "mxbai-embed-large",
+  "extraction": {
+   "repair_shift": false
+  },
+  "chunking": {
+   "kind": "sentence_groups",
+   "max_chars": 1000
+  },
+  "retrieval": {
+   "top_k": 3,
+   "min_score": null
+  },
+  "grounding": {
+   "system": "You are a helpful assistant that is an expert at extracting the most useful information from a given text. Also bring in extra relevant infromation to the user query from outside the given context."
+  },
+  "query_rewriting": {
+   "from_turn": 2,
+   "history_messages": 2,
+   "template": "Rewrite the following query by incorporating relevant context from the conversation history.\n    The rewritten query should:\n    \n    - Preserve the core intent and meaning of the original query\n    - Expand and clarify the query to make it more specific and informative for retrieving relevant context\n    - Avoid introducing new topics or queries that deviate from the original query\n    - DONT EVER ANSWER the Original query, but instead focus on rephrasing and expanding it into a new query\n    \n    Return ONLY the rewritten query text, without any additional formatting or explanations.\n    \n    Conversation History:\n    {history}\n    \n    Original query: [{question}]\n    \n    Rewritten query: \n    ",
+   "role": "system"
+  },
+  "generation": {
+   "max_tokens": 2000,
+   "num_ctx": null,
+   "stop": null,
+   "shortest_answer": false
+  }
+ },
+ "model": "mistral:latest",
+ "model_digest": "6577803aa9a036369e481d648a2baebb381ebc6e897f2bb9a766a2aa7bfbc1cf",
+ "embedding_digest": "468836162de7f81e041c43663fedbbba921dcea9b9fefea135685a39b2d83dd8",
+ "ollama_version": "0.35.1",
+ "pdf_sha256": "a6a8ea25b6ea6e3bb929f62f0fae1b0b3f5b56057b0ed8639f11575e4bd5b403",
+ "pages": 155,
+ "chunks": 202,
+ "index_build_s": 213.64069318771362,
+ "index_bytes": 231029,
+ "index_bytes_basis": "chunks.jsonl",
+ "conversation": "fresh",
+ "commit": "d9e1f5aa8a22a73998a7335cdf7580bc806b9968"
+}

@@ -1,0 +1,2 @@
+experiment,cell,rep,exit_code,wall_s,pipeline_peak_rss_kb,ollama_peak_rss_kb,index_build_s,index_bytes,index_bytes_basis,answers,mean_answer_s
+e1,B-tinyllama,1,0,450.474,244832,1948508,6.1611246,1282048,index.db,40,10.868
