@@ -65,3 +65,7 @@ State. The first E1 repeat 1 cells ran unsharded from commit 62e8c3d and finishe
 ## Amendment 8, 2026-10-06: state at the end of the first night
 
 E1 repeats 1 to 3, E3, the unreadable-page run and 13 of 15 E2 cells in all three repeats are collected. E2e-large repeat 3 and E2f-rewriting repeat 3 were still running when the files were collected. Marks: none exist. The marking sheet and the second-marker sample for E1 repeat 1 are built (`verification/` in the private repository, key SHA-256 `a9801bfe50c5f961da2170e68e1a7aa27866ad94c9e8ac645f48068e8886136c`). No file in the protocol-v1 manifest changed and the tag did not move.
+
+## Amendment 9, 2026-10-09: how P17 and the Holm family were computed
+
+P17 (E2k against B-llama3, Amendment 1) was written on the marked outcome. E2k has no marks. P17 is therefore computed on the automatic scorer for both cells (B-llama3 repeat 1 of E1 and E2k repeat 1), labelled as such wherever it appears, and the marked version is not computed. P4 to P16 use the automatic scorer on E2 repeat 1 as `experiments/comparisons.json` says. Holm is applied over the 17 p-values together. Marks are published without the note column. `unsupported_content` is not marked and not computed.

@@ -347,3 +347,12 @@ Run 37413659604 (`e2`, commit 6bc6729, parameters in `experiments/e2_params.json
 | E2k-period-window | 3 of 3 | 16, 16, 16 |
 
 The cut-prompt counts come from the recorded tokens offered against the window. They are not marks. Parameter-dependent cells: E2k (`num_ctx` 2048) has 16 questions with a cut prompt against 4 in `base`; E2g (`num_ctx` 8192), E2d (threshold 1.0, fewer retrieved chunks), E2h (no retrieval) and E2i (oracle pages) have 0. No E2 answer is marked.
+
+
+## E2 complete, E1 repeat 1 marks and E4 (2026-10-09)
+
+E2 (run 37413659604, commit 6bc6729) finished with all 45 cell repeats; the last two jobs, E2e-large repeat 3 and E2f-rewriting repeat 3, were collected after it ended. All 15 cells pass `scripts/e1_gate.py` in all three repeats. No job of the run failed.
+
+The marked sheet of E1 repeat 1 (private repository, `verification/e1_rep1_marking_sheet_marked.xlsx`) passed `scripts/marking_sheet.py check` against the original sheet: 237 rows, every marking cell holds an allowed value, `respects_applicability` is filled on the 48 applicability rows only and blank elsewhere, and the reading columns are unchanged. The key file had the recorded SHA-256 `a9801bfe50c5f961da2170e68e1a7aa27866ad94c9e8ac645f48068e8886136c` when it was opened. Marks were joined to cells by `scripts/e1_results.py`; a mark on an answer that several cells gave applies to each of them. The free-text note column stays in the private repository; the public files `results/e1/marks_rep1.csv` and `results/e1/marks_rep1_by_cell.csv` have no note column. Counts, intervals, the 17 planned comparisons and the scorer agreement are in `results/summary.md` and in `results/e1/`.
+
+Reading the comparisons. P1 to P3 are the only tests on marks. With 17 tests in the Holm family and `correct: yes` as the outcome, none reaches an adjusted p of 0.05. The unadjusted p-values below 0.05 are P2 (A-mistral against B-mistral, 2 against 11 questions that only one cell got right) and P10 (base against E2e-small, automatic scorer). With partial credit counted as correct, P1 (A-llama3 against B-llama3, 18 against 5 discordant) has an unadjusted p of 0.011 and an adjusted p of 0.18. The automatic scorer and the maintainer agree on `correct` for 177 of 237 distinct answers (kappa 0.61), and the scorer's `yes` is the less reliable value: of the 64 answers the scorer calls yes, the maintainer marks 46 yes, 16 partial and 2 no. These are counts from one marker and one repeat; the second marker's sample and repeats 2 and 3 are not marked.

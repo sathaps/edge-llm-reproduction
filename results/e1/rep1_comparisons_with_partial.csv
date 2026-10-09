@@ -1,0 +1,18 @@
+id,a,b,rep,N_paired,a_correct,b_correct,a_only,b_only,p_exact,p_holm,data
+P1,A-llama3,B-llama3,1,40,32,19,18,5,0.010622024536132812,0.1805744171142578,maintainer's marks
+P2,A-mistral,B-mistral,1,40,32,29,9,6,0.60723876953125,1.0,maintainer's marks
+P3,A-tinyllama,B-tinyllama,1,40,21,8,19,6,0.01463329792022705,0.2341327667236328,maintainer's marks
+P4,base,E2a-sentence-groups,1,40,20,22,4,6,0.75390625,1.0,automatic scorer only
+P5,base,E2a-procedure,1,40,20,18,5,3,0.7265625,1.0,automatic scorer only
+P6,base,E2b-supplement,1,40,20,24,6,10,0.454498291015625,1.0,automatic scorer only
+P7,base,E2c-no-stop,1,40,20,25,0,5,0.0625,0.8125,automatic scorer only
+P8,base,E2c-no-shortest,1,40,20,17,4,1,0.375,1.0,automatic scorer only
+P9,base,E2d-threshold,1,40,20,17,6,3,0.5078125,1.0,automatic scorer only
+P10,base,E2e-small,1,40,20,10,14,4,0.0308837890625,0.432373046875,automatic scorer only
+P11,base,E2e-large,1,40,20,25,7,12,0.359283447265625,1.0,automatic scorer only
+P12,base,E2f-rewriting,1,40,20,16,5,1,0.21875,1.0,automatic scorer only
+P13,base,E2g-window-raised,1,40,20,20,0,0,1.0,1.0,automatic scorer only
+P14,base,E2h-no-retrieval,1,40,20,11,11,2,0.0224609375,0.3369140625,automatic scorer only
+P15,base,E2i-oracle,1,40,20,25,2,7,0.1796875,1.0,automatic scorer only
+P16,base,E2j-extraction-repaired,1,40,20,21,1,2,1.0,1.0,automatic scorer only
+P17,B-llama3-auto,E2k-period-window,1,40,20,18,3,1,0.625,1.0,automatic scorer only
