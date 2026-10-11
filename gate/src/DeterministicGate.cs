@@ -146,8 +146,8 @@ public sealed class DeterministicGate
                     return Refuse(Reason.ValueMissing, "setpoint value missing or not finite", p);
                 if (v > lim.High) return Refuse(Reason.AboveHighLimit, $"{v} > high limit {lim.High}", p);
                 if (v < lim.Low) return Refuse(Reason.BelowLowLimit, $"{v} < low limit {lim.Low}", p);
-                if (!_state.TryReadNumber(p.Tag, out var current))
-                    return Refuse(Reason.StateUnavailable, $"cannot read current value of '{p.Tag}'", p);
+                if (!TryReadFinite(p.Tag, out var current))
+                    return Refuse(Reason.StateUnavailable, $"cannot read a finite current value of '{p.Tag}'", p);
                 if (Math.Abs(v - current) > lim.MaxStep)
                     return Refuse(Reason.StepTooLarge, $"step {Math.Abs(v - current)} > max step {lim.MaxStep}", p);
                 break;
@@ -172,6 +172,8 @@ public sealed class DeterministicGate
             _accepted.RemoveAll(a => a.t < since);
             if (_accepted.Count >= _env.MaxActionsPerWindow)
                 return Refuse(Reason.RateLimit, $"{_accepted.Count} actions already accepted in window", p);
+            if (p.Kind == ActionKind.SetSetpoint && !TryReadFinite(p.Tag, out _))
+                return Refuse(Reason.StateUnavailable, $"cannot read a finite current value of '{p.Tag}'", p);
             var cumulative = _accepted.Where(a => a.tag == p.Tag).Sum(a => Math.Abs(a.delta)) + Math.Abs(Delta(p));
             if (cumulative > _env.MaxCumulativeChangePerWindow)
                 return Refuse(Reason.CumulativeLimit, $"cumulative change {cumulative:0.###} on '{p.Tag}' exceeds bound", p);
@@ -181,8 +183,12 @@ public sealed class DeterministicGate
     }
 
     private double Delta(ActionProposal p) =>
-        p.Kind == ActionKind.SetSetpoint && p.Value is double v && _state.TryReadNumber(p.Tag, out var cur)
+        p.Kind == ActionKind.SetSetpoint && p.Value is double v && TryReadFinite(p.Tag, out var cur)
             ? v - cur : 0.0;
+
+    /// <summary>A reading that is NaN or infinite is no reading: every comparison with it is false, so it would pass the step check.</summary>
+    private bool TryReadFinite(string tag, out double value) =>
+        _state.TryReadNumber(tag, out value) && double.IsFinite(value);
 
     private GateDecision Refuse(string code, string detail, ActionProposal? p) =>
         new(Guid.NewGuid(), _clock(), false, code, detail, p);

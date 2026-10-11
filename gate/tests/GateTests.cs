@@ -181,6 +181,55 @@ public class GateTests
     [Fact] public void Refuses_when_current_value_cannot_be_read() =>
         AssertRefused(Gate().Evaluate(Set("NoStateTag", 3)), Reason.StateUnavailable);
 
+    // A non-finite reading must not pass the step check: Math.Abs(v - NaN) > MaxStep is false.
+    [Theory]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    [InlineData(double.NegativeInfinity)]
+    public void Refuses_non_finite_current_value(double reading)
+    {
+        _state.Values["RateSetpoint"] = reading;
+        AssertRefused(Gate().Evaluate(Set("RateSetpoint", 8.5)), Reason.StateUnavailable);
+    }
+
+    [Theory]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    [InlineData(double.NegativeInfinity)]
+    public void Refuses_non_finite_current_value_when_the_step_is_unbounded(double reading)
+    {
+        _state.Values["RateSetpoint"] = reading;
+        var g = new DeterministicGate(new GateEnvelope
+        {
+            Setpoints = { ["RateSetpoint"] = new SetpointLimit(Low: 0, High: 12, MaxStep: double.PositiveInfinity) },
+        }, _state, _sink, () => _clock.Now);
+        AssertRefused(g.Evaluate(Set("RateSetpoint", 8.5)), Reason.StateUnavailable);
+    }
+
+    [Theory]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    [InlineData(double.NegativeInfinity)]
+    public void Recheck_refuses_when_the_reading_becomes_non_finite(double reading)
+    {
+        var g = Gate();
+        var p = new ActionProposal { Kind = ActionKind.SetSetpoint, Tag = "RateSetpoint", Value = 8.5 };
+        Assert.True(g.Evaluate(p).Accepted);
+        _state.Values["RateSetpoint"] = reading;
+        var r = g.RecheckBeforeExecution(p);
+        AssertRefused(r, Reason.StateChanged);
+        Assert.StartsWith(Reason.StateUnavailable, r.Detail);
+    }
+
+    [Fact] public void A_refused_non_finite_reading_does_not_count_against_the_bounds()
+    {
+        var g = Gate(maxCumulative: 1.0);
+        _state.Values["RateSetpoint"] = double.NaN;
+        AssertRefused(g.Evaluate(Set("RateSetpoint", 8.5)), Reason.StateUnavailable);
+        _state.Values["RateSetpoint"] = 8.0;
+        Assert.True(g.Evaluate(Set("RateSetpoint", 8.5)).Accepted);
+    }
+
 
     [Fact] public void Refuses_mode_not_in_allowed_set() =>
         AssertRefused(Gate().Evaluate("""{ "kind": "ChangeMode", "tag": "UnitMode", "mode": "Run" }"""), Reason.ModeNotAllowed);
