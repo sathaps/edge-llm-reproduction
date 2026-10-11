@@ -78,3 +78,7 @@ What. The original second-marker sample (seed 7) was marked and returned three t
 Check. `scripts/marking_sheet.py check` of the returned file against the blank one reports 12 empty `complete` cells and no other problem. All 12 are on unanswerable rows, where the second marker treated `complete` as not applicable. We treat those 12 as not marked, report agreement on `complete` for the other 48, and fill or change none of the second marker's marks. The 48 empty `respects_applicability` cells are the non-applicability rows, as the rules require. The reading columns are unchanged.
 
 Agreement (`results/e1/second_marker_D_agreement.md`): correct 34 of 60 (Cohen's kappa 0.345), complete 44 of 48 (0.778), abstained 51 of 60 (0.550), respects_applicability 7 of 12 (0.063). No frozen file changed.
+
+## Amendment 11, 2026-10-11: fix of the gate after the results
+
+A current-state reading that is NaN or infinite passed the step check of `gate/src/DeterministicGate.cs` (found in an outside review). The gate now refuses any non-finite reading with STATE_UNAVAILABLE, and ten test cases cover it (71 passed of 71 on a runner, run 38155768178, commit 2658282). This fix was made after the E3 results. No recorded result changes, because the scripted proposals and the E3 runs used a stand-in state reader with fixed finite values. The gate is not part of the protocol-v1 manifest, which is unchanged, and the tag did not move.

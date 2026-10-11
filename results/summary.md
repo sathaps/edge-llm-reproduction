@@ -2,7 +2,7 @@
 
 Every figure comes from a run recorded in this repository. No figure is estimated. Counts are n of N.
 
-Status: E1 repeats 1 to 3 are collected and pass the sanity gate. The maintainer's marks of E1 repeat 1 are in; repeats 2 and 3 are not marked. E3 steps 3 and 4 are done. The unreadable-page run is scored by the automatic scorer only. E2 is collected in `results/e2/` (all 15 cells in all three repeats) and passes the sanity gate; no E2 answer is marked, and E2 appears only through the automatic scorer in P4 to P17. E4 and E5 have no results yet. The gate results below need no model.
+Status: E1 repeats 1 to 3 are collected and pass the sanity gate. The maintainer's marks of E1 repeat 1 are in; repeats 2 and 3 are not marked. E3 steps 3 and 4 are done. The unreadable-page run is scored by the automatic scorer only. E2 is collected in `results/e2/` (all 15 cells in all three repeats) and passes the sanity gate; no E2 answer is marked, and E2 appears only through the automatic scorer in P4 to P17. E4 is summarised below; E5 has no results yet. The gate results below need no model.
 
 ## Runner measurements
 
@@ -18,8 +18,8 @@ Source: unit tests on a runner, run 37375097256 (`gate-tests`), commit 05615c8; 
 
 | Run | Command | Result |
 |---|---|---|
-| Unit tests | `dotnet test` in `gate/tests` | 61 passed of 61, 0 failed, 0 skipped |
-| Unit tests on a hosted runner | the `gate-tests` workflow, run 37375097256 | 61 passed of 61, 0 failed, 0 skipped |
+| Unit tests | `dotnet test` in `gate/tests` | 71 passed of 71, 0 failed, 0 skipped (61 at commit 05615c8; 10 test cases added after the results, see below) |
+| Unit tests on a hosted runner | the `gate-tests` workflow, run 38155768178 (commit 2658282); run 37375097256 (commit 05615c8) gave 61 of 61 before the fix | 71 passed of 71, 0 failed, 0 skipped |
 | Scripted proposals | `dotnet run --project gate/scripted` | 57 proposals: 17 accepted, 40 refused |
 
 Scripted proposals by reason code. Inputs: `gate/proposals/scripted.json` (the eleven proposals of `gate/src/Program.cs` in order, one recheck, and boundary cases for each rule; each scenario starts a fresh gate). Per-proposal rows: `results/gate/scripted_proposals.csv`.
@@ -43,6 +43,8 @@ Scripted proposals by reason code. Inputs: `gate/proposals/scripted.json` (the e
 | Total | 57 |
 
 All 57 outcomes matched the reason code the rule predicts. Every one of the 14 reason codes occurs at least once. The counts describe the coverage of the scripted set. They do not describe how often a model triggers each code. E3 step 3 measures that.
+
+Gate fix after the results (2026-10-11). A current-state reading that is NaN or infinite passed the step check, because `Math.Abs(v - NaN) > MaxStep` is false. The gate now refuses any non-finite reading with STATE_UNAVAILABLE, in the step check, the cumulative check and the execution-time recheck (where the refusal carries STATE_CHANGED_BEFORE_EXECUTION with STATE_UNAVAILABLE at the start of its detail, as for every recheck refusal). Ten test cases cover NaN, positive and negative infinity. Every number in this section and in the E3 section was produced before the fix and does not change: the scripted proposals and the E3 runs used a stand-in state reader with fixed finite values, and the scripted run gives the same 57 proposals, 17 accepted and 40 refused, after the fix. Source: `results/notes.md`, section Gate fix, and Amendment 11.
 
 ## E1: collected runs and software
 

@@ -29,3 +29,4 @@ Runs that failed or were cancelled stay listed in the notes with the reason. Dev
 | `e4-resources` | E4 resource use per cell (summary: E4) | 37394227689, 37395147521, 37413607526, 37413620660 (E1); 37413659604 (E2) | 62e8c3d, b41cea7, 467830b, 7aa29b2, 6bc6729 | `results/e1/e4_resources.md`, `results/e2/e4_resources.md` |
 | `e2-complete` | E2 collected in full, gate passes (notes: E2 complete) | 37413659604 | 6bc6729 | `results/e2/` |
 | `e1-second-marker` | Second marker, sample D: agreement with the first marker (summary: Second marker) | 37394227689, 37395147521 (answers); sample D marks sheet commit 77df08f (private repository) | 62e8c3d, b41cea7, 8e35b4d | `results/e1/second_marker_D_marks.csv`, `results/e1/second_marker_D_agreement.md` |
+| `gate-fix-non-finite` | Gate unit tests after the non-finite fix (summary: E3 steps 1 and 2; notes: Gate fix) | 38155768178 (`gate-tests`) | 2658282 | job log of the run, transcribed into `results/notes.md` |
