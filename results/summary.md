@@ -61,7 +61,7 @@ Answers are not always identical between repeats at temperature 0 and seed 42 (`
 
 ## E1 repeat 1: the maintainer's marks (blind)
 
-Source: runs 37394227689, 37395147521 (repeat 1 of the six cells, commits 62e8c3d and b41cea7); marks by the maintainer on the blind sheet, which `scripts/marking_sheet.py check` accepted; unblinded with the key whose SHA-256 (`a9801bfe...`) was recorded before marking; computed by `scripts/e1_results.py`. Index entry `e1-rep1-marks`. 40 questions per cell, 8 per category, n of N with Wilson 95 % intervals. A mark on an answer that several cells gave counts for each of them. `unsupported_content` is not marked. One person marked; the second marker's sample is not yet marked. Files: `results/e1/marks_rep1.csv` (marks by answer id, no notes), `results/e1/marks_rep1_by_cell.csv`, `results/e1/rep1_counts.md` (all categories and fields).
+Source: runs 37394227689, 37395147521 (repeat 1 of the six cells, commits 62e8c3d and b41cea7); marks by the maintainer on the blind sheet, which `scripts/marking_sheet.py check` accepted; unblinded with the key whose SHA-256 (`a9801bfe...`) was recorded before marking; computed by `scripts/e1_results.py`. Index entry `e1-rep1-marks`. 40 questions per cell, 8 per category, n of N with Wilson 95 % intervals. A mark on an answer that several cells gave counts for each of them. `unsupported_content` is not marked. One person marked every answer; a second person marked a random blind sample of 60 (agreement below). Files: `results/e1/marks_rep1.csv` (marks by answer id, no notes), `results/e1/marks_rep1_by_cell.csv`, `results/e1/rep1_counts.md` (all categories and fields).
 
 | Cell | correct: yes | correct: partial | correct: no | complete: yes | abstained: yes |
 |---|---|---|---|---|---|
@@ -139,6 +139,21 @@ Scorer against maintainer for `correct` (rows scorer, columns maintainer):
 | partial | 6 | 47 | 10 |
 | no | 10 | 16 | 84 |
 
+
+## Second marker: agreement with the first marker
+
+Source: sample D (Amendment 10), 60 distinct answers of E1 repeat 1 (runs 37394227689 and 37395147521, commits 62e8c3d and b41cea7), marked by a second person blind to the cells and to the first marker's marks; computed by `scripts/second_marker_agreement.py`. Index entry `e1-second-marker`. The 12 empty `complete` cells are all on unanswerable rows and are not marks. Marks without notes: `results/e1/second_marker_D_marks.csv`.
+
+| Field | Answers compared | Same mark | Cohen's kappa |
+|---|---|---|---|
+| correct | 60 | 34 of 60 | 0.345 |
+| complete | 48 | 44 of 48 | 0.778 |
+| respects_applicability | 12 | 7 of 12 | 0.063 |
+| abstained | 60 | 51 of 60 | 0.550 |
+
+`correct` as yes versus not yes: 41 of 60 agree, Cohen's kappa 0.206.
+
+`correct` as yes versus not yes: 41 of 60 agree (kappa 0.206). Table for `correct` and the other fields: `results/e1/second_marker_D_agreement.md`. The two markers agree on `complete` and, with less strength, on `abstained`; they differ most on `correct`, mainly between yes, partial and no. We therefore report the first marker's marks as one person's marks and show the agreement next to them.
 
 ## E3 steps 3 and 4: model-generated and adversarial proposals
 
@@ -230,7 +245,7 @@ The index of A takes 90 to 216 s (mxbai-embed-large) and of B 4 to 11 s (all-min
 ## Limitations
 
 - One manual. Every result comes from a single public manual. Findings on retrieval and applicability may not carry over to manuals with other layouts.
-- One main marker. One person marks every E1 repeat-1 answer. A second person marks a random blind sample of 60 answers, and the agreement is reported as counts and Cohen's kappa. Marking is blind to configuration, but the judgement on "partial" and "complete" rests on those two people by anyone else.
+- One main marker. One person marks every E1 repeat-1 answer. A second person marked a random blind sample of 60 distinct answers (sample D, Amendment 10) and the agreement is reported as counts with Cohen's kappa: `correct` 34 of 60 (kappa 0.345), `complete` 44 of 48 (0.778), `abstained` 51 of 60 (0.550), `respects_applicability` 7 of 12 (0.063). The agreement on `correct` is moderate and the markers disagree most on `partial`, so a difference of a few questions between cells is within the disagreement between two people. The sample is not stratified by cell, and E1 repeats 2 and 3 and all E2 cells are not marked.
 - Small models on a 4-CPU runner. Model results come from models served by Ollama on a GitHub-hosted 4-CPU, 15 GB, CPU-only runner. They say nothing about larger models or other hardware. E4 figures are runner measurements, not edge-device measurements.
 - A re-implementation, not the original builds. The two pipelines are rebuilt from a written description on public material. The original builds, documents and hardware are not part of this repository. No result here was measured on them.
 - Small samples. Counts are n of N with small N per category. A difference of one or two questions is within what one reworded question could change.

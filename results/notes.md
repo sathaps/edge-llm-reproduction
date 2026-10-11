@@ -356,3 +356,17 @@ E2 (run 37413659604, commit 6bc6729) finished with all 45 cell repeats; the last
 The marked sheet of E1 repeat 1 (private repository, `verification/e1_rep1_marking_sheet_marked.xlsx`) passed `scripts/marking_sheet.py check` against the original sheet: 237 rows, every marking cell holds an allowed value, `respects_applicability` is filled on the 48 applicability rows only and blank elsewhere, and the reading columns are unchanged. The key file had the recorded SHA-256 `a9801bfe50c5f961da2170e68e1a7aa27866ad94c9e8ac645f48068e8886136c` when it was opened. Marks were joined to cells by `scripts/e1_results.py`; a mark on an answer that several cells gave applies to each of them. The free-text note column stays in the private repository; the public files `results/e1/marks_rep1.csv` and `results/e1/marks_rep1_by_cell.csv` have no note column. Counts, intervals, the 17 planned comparisons and the scorer agreement are in `results/summary.md` and in `results/e1/`.
 
 Reading the comparisons. P1 to P3 are the only tests on marks. With 17 tests in the Holm family and `correct: yes` as the outcome, none reaches an adjusted p of 0.05. The unadjusted p-values below 0.05 are P2 (A-mistral against B-mistral, 2 against 11 questions that only one cell got right) and P10 (base against E2e-small, automatic scorer). With partial credit counted as correct, P1 (A-llama3 against B-llama3, 18 against 5 discordant) has an unadjusted p of 0.011 and an adjusted p of 0.18. The automatic scorer and the maintainer agree on `correct` for 177 of 237 distinct answers (kappa 0.61), and the scorer's `yes` is the less reliable value: of the 64 answers the scorer calls yes, the maintainer marks 46 yes, 16 partial and 2 no. These are counts from one marker and one repeat; the second marker's sample and repeats 2 and 3 are not marked.
+
+
+## Second marker, sample D (2026-10-11)
+
+Sample D (Amendment 10): 60 distinct answers, 12 per category, marked by a second person blind to the cells and to the first marker's marks. The returned file differs from the blank one only in the marking cells. `scripts/marking_sheet.py check` reports 12 empty `complete` cells, all on unanswerable rows; they are treated as not marked and nothing was filled in. Marks only (no notes) are in `results/e1/second_marker_D_marks.csv`; the agreement with the first marker, made by `scripts/second_marker_agreement.py`, is in `results/e1/second_marker_D_agreement.md`.
+
+| Field | Answers compared | Same mark | Cohen's kappa |
+|---|---|---|---|
+| correct | 60 | 34 of 60 | 0.345 |
+| complete | 48 | 44 of 48 | 0.778 |
+| abstained | 60 | 51 of 60 | 0.550 |
+| respects_applicability | 12 | 7 of 12 | 0.063 |
+
+`correct` as yes versus not yes: 41 of 60 agree, kappa 0.206. For `correct` (first marker in rows, second in columns): yes 7 / 4 / 5 (second yes / partial / no), partial 7 / 12 / 2, no 3 / 5 / 15. The two markers agree most on the clear ends and differ on `partial`: of the 16 answers the first marker calls yes, the second calls 7 yes, 4 partial and 5 no. Our recomputation matches the figures sent by the paper session except the kappa for `correct`, which is 0.345 (0.34 when rounded to two places). With one second marker and 12 applicability answers, the agreement on `respects_applicability` rests on very few answers.

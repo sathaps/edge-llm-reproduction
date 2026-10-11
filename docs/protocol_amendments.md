@@ -69,3 +69,12 @@ E1 repeats 1 to 3, E3, the unreadable-page run and 13 of 15 E2 cells in all thre
 ## Amendment 9, 2026-10-09: how P17 and the Holm family were computed
 
 P17 (E2k against B-llama3, Amendment 1) was written on the marked outcome. E2k has no marks. P17 is therefore computed on the automatic scorer for both cells (B-llama3 repeat 1 of E1 and E2k repeat 1), labelled as such wherever it appears, and the marked version is not computed. P4 to P16 use the automatic scorer on E2 repeat 1 as `experiments/comparisons.json` says. Holm is applied over the 17 p-values together. Marks are published without the note column. `unsupported_content` is not marked and not computed.
+
+
+## Amendment 10, 2026-10-11: the second marker's sample was redrawn
+
+What. The original second-marker sample (seed 7) was marked and returned three times. None of the returns could be accepted as independent marking: one was produced by a tool, and two carried marks over from it. All three were discarded unused. They are not in either repository, and the blank seed-7 sample in the private repository holds no marks. A new sample D replaced it. The paper session drew it: 60 answers from the 177 distinct answers that are not in the seed-7 sample, 12 per category, using `random.Random(2026)` to sample 12 from the sorted answer ids of each category in the order self_contained, condition_dependent, applicability, unanswerable, table_lookup, then shuffling the 60 with the same generator. The draw is not stratified by cell. We repeated it from the marked sheet and the seed-7 ids and obtained the same 60 ids in the same order (`verification/e1_rep1_second_marker_sample_D_ids.txt`, private repository). Sample D was marked by a person other than the one who received the seed-7 sample, blind to the cells and to the first marker's marks.
+
+Check. `scripts/marking_sheet.py check` of the returned file against the blank one reports 12 empty `complete` cells and no other problem. All 12 are on unanswerable rows, where the second marker treated `complete` as not applicable. We treat those 12 as not marked, report agreement on `complete` for the other 48, and fill or change none of the second marker's marks. The 48 empty `respects_applicability` cells are the non-applicability rows, as the rules require. The reading columns are unchanged.
+
+Agreement (`results/e1/second_marker_D_agreement.md`): correct 34 of 60 (Cohen's kappa 0.345), complete 44 of 48 (0.778), abstained 51 of 60 (0.550), respects_applicability 7 of 12 (0.063). No frozen file changed.
