@@ -2,7 +2,7 @@
 
 Reproduction of two retrieval pipelines and a deterministic gate for language models on edge devices, run on a public equipment manual.
 
-Status: in setup. See `results/summary.md` for what has been measured.
+Status: measurements complete. See `results/summary.md` for the results.
 
 This repository re-implements, on public material, two configurations of a document question-answering pipeline that were first built for an industrial field computer. It also exercises a small deterministic gate that checks actions proposed by a language model. The original builds, their documentation and their hardware are not part of this repository, and no result here was measured on them.
 
@@ -45,4 +45,4 @@ Both pipelines accept `--ollama URL`, `--questions CSV`, `--set path=value`, `--
 
 ## Scope
 
-Results are for one manual, the Cummins CFP11E manual. The question set and the manual for a second corpus (Fulton) were prepared and not used so far. The second corpus is deferred. See `docs/protocol_amendments.md`, Amendment 3.
+All main results are for one manual, the Cummins CFP11E manual. A second manual (Fulton) was used only for the calibration probes of prompt and embedding truncation. A question set for it was prepared and not run. See `docs/protocol_amendments.md`, Amendment 3.
